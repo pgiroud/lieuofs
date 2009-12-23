@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+	<context:annotation-config/>
+
+	<bean id="cantonDao" class="ch.ge.afc.ofs.canton.biz.dao.CantonOFSFichierTxtDao">
+		<property name="charsetName" value="ISO-8859-1"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/canton/biz/dao/20100101_GDEHist_KT.txt"/>
+	</bean>
+
+	<bean id="gestionCanton" class="ch.ge.afc.ofs.canton.biz.GestionCanton">
+		<property name="dao" ref="cantonDao"/>
+	</bean>
+
+	<bean id="districtDao" class="ch.ge.afc.ofs.district.biz.dao.DistrictOFSFichierTxtDao">
+		<property name="charsetName" value="ISO-8859-1"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/district/biz/dao/20100101_GDEHist_BEZ.txt"/>
+	</bean>
+	
+	<bean id="gestionDistrict" class="ch.ge.afc.ofs.district.biz.GestionDistrict">
+		<property name="dao" ref="districtDao"/>
+		<property name="gestionnaireCanton" ref="gestionCanton"/>
+	</bean>
+	
+	<bean id="communeDao" class="ch.ge.afc.ofs.commune.biz.dao.CommuneOFSFichierTxtDao">
+		<property name="charsetName" value="ISO-8859-1"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/commune/biz/dao/20100101_GDEHist_GDE.txt"/>
+	</bean>
+	
+	<bean id="gestionCommune" class="ch.ge.afc.ofs.commune.biz.GestionCommune">
+		<property name="dao" ref="communeDao"/>
+		<property name="gestionnaireCanton" ref="gestionCanton"/>
+		<property name="gestionnaireDistrict" ref="gestionDistrict"/>
+	</bean>
+	
+	<bean id="etatTerritoireDao" class="ch.ge.afc.ofs.geo.territoire.biz.dao.EtatTerritoireFichierXmlDao">
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/geo/territoire/biz/dao/eCH0072_100101.xml"/>
+		<property name="charsetName" value="UTF-8"/>
+	</bean>
+	
+	<bean name="gestionEtat" class="ch.ge.afc.ofs.etat.biz.GestionEtat">
+		<property name="dao" ref="etatTerritoireDao"/>
+	</bean>
+	
+	<bean name="gestionTerritoire" class="ch.ge.afc.ofs.geo.territoire.biz.GestionTerritoire">
+		<property name="dao" ref="etatTerritoireDao"/>
+		<property name="gestionnaireEtat" ref="gestionEtat"/>
+	</bean>
+	
+</beans>
