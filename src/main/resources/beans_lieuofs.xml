@@ -9,7 +9,7 @@
 
 	<bean id="cantonDao" class="ch.ge.afc.ofs.canton.biz.dao.CantonOFSFichierTxtDao">
 		<property name="charsetName" value="ISO-8859-1"/>
-		<property name="fichier" value="classpath:ch/ge/afc/ofs/canton/biz/dao/20100101_GDEHist_KT.txt"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/canton/biz/dao/20090405_GDEHist_KT.txt"/>
 	</bean>
 
 	<bean id="gestionCanton" class="ch.ge.afc.ofs.canton.biz.GestionCanton">
@@ -18,7 +18,7 @@
 
 	<bean id="districtDao" class="ch.ge.afc.ofs.district.biz.dao.DistrictOFSFichierTxtDao">
 		<property name="charsetName" value="ISO-8859-1"/>
-		<property name="fichier" value="classpath:ch/ge/afc/ofs/district/biz/dao/20100101_GDEHist_BEZ.txt"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/district/biz/dao/20120101_GDEHist_BEZ.txt"/>
 	</bean>
 	
 	<bean id="gestionDistrict" class="ch.ge.afc.ofs.district.biz.GestionDistrict">
@@ -28,17 +28,17 @@
 	
 	<bean id="communeDao" class="ch.ge.afc.ofs.commune.biz.dao.CommuneOFSFichierTxtDao">
 		<property name="charsetName" value="ISO-8859-1"/>
-		<property name="fichier" value="classpath:ch/ge/afc/ofs/commune/biz/dao/20100101_GDEHist_GDE.txt"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/commune/biz/dao/20120101_GDEHist_GDE.txt"/>
 	</bean>
 	
-	<bean id="gestionCommune" class="ch.ge.afc.ofs.commune.biz.GestionCommune">
+	<bean name="gestionCommune" class="ch.ge.afc.ofs.commune.biz.GestionCommune">
 		<property name="dao" ref="communeDao"/>
 		<property name="gestionnaireCanton" ref="gestionCanton"/>
 		<property name="gestionnaireDistrict" ref="gestionDistrict"/>
 	</bean>
 	
 	<bean id="etatTerritoireDao" class="ch.ge.afc.ofs.geo.territoire.biz.dao.EtatTerritoireFichierXmlDao">
-		<property name="fichier" value="classpath:ch/ge/afc/ofs/geo/territoire/biz/dao/eCH0072_100101.xml"/>
+		<property name="fichier" value="classpath:ch/ge/afc/ofs/geo/territoire/biz/dao/eCH0072_111015.xml"/>
 		<property name="charsetName" value="UTF-8"/>
 	</bean>
 	
@@ -50,5 +50,8 @@
 		<property name="dao" ref="etatTerritoireDao"/>
 		<property name="gestionnaireEtat" ref="gestionEtat"/>
 	</bean>
-	
+
+	<bean id="freemarkerConfiguration" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+   		<property name="templateLoaderPath" value="/WEB-INF/freemarker/"/>
+ 	</bean>	
 </beans>
