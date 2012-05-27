@@ -48,7 +48,7 @@ public class ExtractionEtat {
 	 */
 	public static void main(String[] args) throws IOException {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans.xml"});
+		        new String[] {"beans_lieuofs.xml"});
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
 		critere.setEstEtat(Boolean.TRUE);
 		// critere.setValide(Boolean.TRUE);
@@ -56,8 +56,8 @@ public class ExtractionEtat {
 		EtatTerritoireDao dao = (EtatTerritoireDao)context.getBean("etatTerritoireDao");
 		Set<EtatTerritoirePersistant> etats = dao.rechercher(critere);
 		
-		EtatWriter etatWriter = new RemarqueSQLWriter();
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("Remarques.sql"),"Windows-1252"));
+		EtatWriter etatWriter = new CsvPlatEtatWriter();
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("Etat.txt"),"UTF-8"));
 		
 		List<EtatTerritoirePersistant> listeTriee = new ArrayList<EtatTerritoirePersistant>(etats);
 		Collections.sort(listeTriee, new Comparator<EtatTerritoirePersistant>() {

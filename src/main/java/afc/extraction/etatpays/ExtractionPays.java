@@ -20,11 +20,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -44,15 +40,15 @@ public class ExtractionPays {
 	 */
 	public static void main(String[] args) throws IOException {
 		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans.xml"});
+		        new String[] {"beans_lieuofs.xml"});
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
-		critere.setEstEtat(Boolean.FALSE);
+		//critere.setEstEtat(Boolean.FALSE);
 				
 		EtatTerritoireDao dao = (EtatTerritoireDao)context.getBean("etatTerritoireDao");
 		Set<EtatTerritoirePersistant> etats = dao.rechercher(critere);
 		
 		EtatWriter etatWriter = new NumOFSEtatWriter();
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ExtractionPaysOFS.txt"),"UTF-8"));
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ExtractionPaysOFSReconnuRecemment.txt"),"UTF-8"));
 		
 		List<EtatTerritoirePersistant> listeTriee = new ArrayList<EtatTerritoirePersistant>(etats);
 		Collections.sort(listeTriee, new Comparator<EtatTerritoirePersistant>() {
@@ -67,7 +63,7 @@ public class ExtractionPays {
 		});
 		
 		
-		for (EtatTerritoirePersistant etat : listeTriee) {
+		for (EtatTerritoirePersistant etat : filtre(listeTriee)) {
 			String etatStr = etatWriter.ecrireEtat(etat);
 			if (null != etatStr) {
 				writer.append(etatStr);
@@ -76,6 +72,23 @@ public class ExtractionPays {
 		writer.close();
 	}
 
+    private static List<EtatTerritoirePersistant> filtre(List<EtatTerritoirePersistant> listeOriginal) {
+        List<EtatTerritoirePersistant> listeFiltree = new ArrayList<EtatTerritoirePersistant>(); 
+        for (EtatTerritoirePersistant etatTerritoire : listeOriginal) {
+            // On sélectionne tous les états territoire reconnu il ya moins de 2 ans
+            Calendar cal = Calendar.getInstance();
+            cal.roll(Calendar.YEAR,-5);
+            Date ilYa5an = cal.getTime();
+            Date dateReconnaissance = etatTerritoire.getDateReconnaissance();
+            if (null != dateReconnaissance
+                    && dateReconnaissance.compareTo(ilYa5an) > 0) {
+                listeFiltree.add(etatTerritoire);
+            }
+        }
+        return listeFiltree;
+    }
+    
+    
 	private static interface EtatWriter {
 		String ecrireEtat(EtatTerritoirePersistant etat);
 	}
@@ -86,12 +99,12 @@ public class ExtractionPays {
 		
 		@Override
 		public String ecrireEtat(EtatTerritoirePersistant etat) {
-			String noOFS = String.valueOf(etat.getNumeroOFS());
+			String nom = String.valueOf(etat.getFormeCourte("fr"));
 			if (estPremier) {
 				estPremier = false;
-				return noOFS;
+				return nom;
 			}
-			else return ", " + noOFS;
+			else return "\n" + nom;
 		}
 		
 	}
