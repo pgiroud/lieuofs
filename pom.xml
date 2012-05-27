@@ -71,7 +71,7 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>2.3</version>
                 <configuration>
-                    <linkXref>true</linkXref>
+                    <!--linkXref>true</linkXref-->
                     <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
                     <minimumTokens>100</minimumTokens>
                     <targetJdk>${compileSource}</targetJdk>
