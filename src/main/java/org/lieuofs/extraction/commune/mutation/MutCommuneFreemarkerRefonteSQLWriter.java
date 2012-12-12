@@ -189,6 +189,7 @@ public class MutCommuneFreemarkerRefonteSQLWriter implements
 		if (TypeMutationCommune.INCLUSION.equals(mutation.getType())) return ecrireInclusion(mutation);
 		if (TypeMutationCommune.CHANGEMENT_NOM.equals(mutation.getType())) return ecrireChgtNom(mutation);
 		if (TypeMutationCommune.CHANGEMENT_DISTRICT.equals(mutation.getType())) return null;
+        if (TypeMutationCommune.ECHANGE_TERRITOIRE.equals(mutation.getType())) return null;
 		throw new UnsupportedOperationException("Le type de mutation " + mutation.getType() + " n'est pas supporté !!");
 		} catch (IOException ioex) {
 			logger.error("Exception mutation commune", ioex);

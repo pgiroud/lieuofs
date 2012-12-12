@@ -16,14 +16,12 @@
 
 package org.lieuofs.extraction.commune.mutation;
 
-import static org.lieuofs.commune.TypeMutationCommune.CHANGEMENT_NOM;
-import static org.lieuofs.commune.TypeMutationCommune.FUSION;
-import static org.lieuofs.commune.TypeMutationCommune.INCLUSION;
-
 import java.util.EnumSet;
 
 import org.lieuofs.commune.IMutationCommune;
 import org.lieuofs.commune.TypeMutationCommune;
+
+import static org.lieuofs.commune.TypeMutationCommune.*;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -33,7 +31,7 @@ class DescriptionTexteWriter implements MutationCommuneWriter {
 
 	@Override
 	public String ecrireMutation(IMutationCommune mutation) {
-		EnumSet<TypeMutationCommune> typeEcrit = EnumSet.of(FUSION,INCLUSION,CHANGEMENT_NOM);
+		EnumSet<TypeMutationCommune> typeEcrit = EnumSet.of(FUSION,INCLUSION,CHANGEMENT_NOM,ECHANGE_TERRITOIRE);
 		if (typeEcrit.contains(mutation.getType())) return mutation.getDescription() + "\n";
 		return null;
 	}

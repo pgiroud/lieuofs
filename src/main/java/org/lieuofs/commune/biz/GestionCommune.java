@@ -147,11 +147,15 @@ public class GestionCommune implements IGestionCommune {
 	
 	protected TypeMutationCommune obtenirTypeMutation(List<PersistCommune> communesSource, List<PersistCommune> communesCible) {
 		if (communesSource.size() > 1) {
-			// Fusion ou inclusion de commune
-			boolean hasModifTerritoire = false;
-			for (PersistCommune commune : communesSource) if (MODIF_TERR.equals(commune.getRadiation().getMode())) hasModifTerritoire = true;
-			if (hasModifTerritoire) return TypeMutationCommune.INCLUSION;
-			else return TypeMutationCommune.FUSION;
+            if (communesCible.size() > 1) {
+                return TypeMutationCommune.ECHANGE_TERRITOIRE;
+            } else {
+			    // Fusion ou inclusion de commune
+			    boolean hasModifTerritoire = false;
+			    for (PersistCommune commune : communesSource) if (MODIF_TERR.equals(commune.getRadiation().getMode())) hasModifTerritoire = true;
+			    if (hasModifTerritoire) return TypeMutationCommune.INCLUSION;
+			    else return TypeMutationCommune.FUSION;
+            }
 		} else {
 			if (communesCible.size() > 1) {
 				// scission ou exclusion

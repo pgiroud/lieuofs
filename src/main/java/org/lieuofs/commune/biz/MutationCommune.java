@@ -205,7 +205,12 @@ public class MutationCommune implements IMutationCommune {
 			builder.append(" le ");
 			builder.append(dtFormat.format(this.dateEffet));
 			return  builder.toString();
-		default:
+        case ECHANGE_TERRITOIRE:
+            builder = new StringBuilder("Echange de territoire entre les 2 communes ");
+            builder.append(getDesc(communesOrigines));
+            builder.append(" le ");
+            builder.append(dtFormat.format(this.dateEffet));
+            return  builder.toString();		default:
 			return "TODO";
 		}
 	}
