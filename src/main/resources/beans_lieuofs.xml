@@ -18,7 +18,7 @@
 
 	<bean id="districtDao" class="org.lieuofs.district.biz.dao.DistrictOFSFichierTxtDao">
 		<property name="charsetName" value="ISO-8859-1"/>
-		<property name="fichier" value="classpath:org/lieuofs/district/biz/dao/20120101_GDEHist_BEZ.txt"/>
+		<property name="fichier" value="classpath:org/lieuofs/district/biz/dao/20130101_GDEHist_BEZ.txt"/>
 	</bean>
 	
 	<bean id="gestionDistrict" class="org.lieuofs.district.biz.GestionDistrict">
@@ -28,7 +28,7 @@
 	
 	<bean id="communeDao" class="org.lieuofs.commune.biz.dao.CommuneOFSFichierTxtDao">
 		<property name="charsetName" value="ISO-8859-1"/>
-		<property name="fichier" value="classpath:org/lieuofs/commune/biz/dao/20120101_GDEHist_GDE.txt"/>
+		<property name="fichier" value="classpath:org/lieuofs/commune/biz/dao/20130101_GDEHist_GDE.txt"/>
 	</bean>
 	
 	<bean name="gestionCommune" class="org.lieuofs.commune.biz.GestionCommune">
