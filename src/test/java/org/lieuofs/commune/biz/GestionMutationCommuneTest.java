@@ -16,9 +16,6 @@
 package org.lieuofs.commune.biz;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -27,6 +24,8 @@ import javax.annotation.Resource;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import static org.fest.assertions.api.Assertions.assertThat;
+
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -45,9 +44,9 @@ public class GestionMutationCommuneTest {
 	public void exclusion() {
 		// Mutation N° 1565
 		IMutationCommune mutation = gestionnaire.lireMutation(1565);
-		assertEquals("Type",TypeMutationCommune.EXCLUSION,mutation.getType());
-		assertEquals("Nbre commune source",1,mutation.getCommunesOrigines().size());
-		assertTrue("Nbre commune cible",1 < mutation.getCommunesCibles().size());
+        assertThat(mutation.getType()).isEqualTo(TypeMutationCommune.EXCLUSION);
+        assertThat(mutation.getCommunesOrigines()).hasSize(1);
+        assertThat(mutation.getCommunesCibles().size()).isGreaterThan(1);
 	}
 	
 	@Test
@@ -55,7 +54,7 @@ public class GestionMutationCommuneTest {
 		// Mutation N° 2328 : Bulle + La-Tour-de-Trême --> Bulle
 		IMutationCommune mutation = gestionnaire.lireMutation(2328);
 		String description = mutation.getDescription();
-		assertTrue("longue description",20 < description.length());
+        assertThat(description.length()).isGreaterThan(20);
 	}
 	
 	@Test
@@ -71,7 +70,7 @@ public class GestionMutationCommuneTest {
 		for (IMutationCommune mut : mutations) {
 			descriptions.add(mut.getDescription());
 		}
-		assertTrue("Beaucoup de mutation", 40 < mutations.size());
+        assertThat(mutations.size()).isGreaterThan(40);
 	}
 	
 	@Test
@@ -89,7 +88,7 @@ public class GestionMutationCommuneTest {
 		for (IMutationCommune mut : mutations) {
 			descriptions.add(mut.getDescription());
 		}
-		assertEquals("Une seule mutation", 1, mutations.size());
+        assertThat(mutations).hasSize(1);
 	}
 	
 	@Test
@@ -109,7 +108,7 @@ public class GestionMutationCommuneTest {
 		for (IMutationCommune mut : mutations) {
 			descriptions.add(mut.getDescription());
 		}
-		assertEquals("82 mutations", 82, mutations.size());
+        assertThat(mutations).hasSize(82);
 	}
 	
 	@Test(expected=IllegalArgumentException.class)
@@ -125,9 +124,12 @@ public class GestionMutationCommuneTest {
 		critere.setDateDebut(cal.getTime());
 		List<IMutationCommune> mutations = gestionnaire.rechercherMutation(critere);
 		List<String> descriptions = new ArrayList<String>();
+        int i = 0;
 		for (IMutationCommune mut : mutations) {
+            System.out.println("Mutation " + i);
 			descriptions.add(mut.getDescription());
+            i++;
 		}
-		assertTrue("Beaucoup de mutation", 100 < mutations.size());
+        assertThat(mutations.size()).isGreaterThan(100);
 	}
 }
