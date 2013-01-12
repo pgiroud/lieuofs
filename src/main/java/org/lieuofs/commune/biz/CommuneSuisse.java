@@ -195,6 +195,16 @@ public class CommuneSuisse implements ICommuneSuisse {
 	public void setDistrict(IDistrict district) {
 		this.district = district;
 	}
-	
-	
+
+    @Override
+    public int hashCode() {
+        long value = this.getId();
+        return (int)(value ^ (value >>> 32));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CommuneSuisse)) return false;
+        return this.getId().equals(((CommuneSuisse) obj).getId());
+    }
 }

@@ -25,7 +25,8 @@ public class CommuneCritere {
 	private String codeCanton;
 	private Identifiable district;
 	
-	private Date dateValidite;
+	private Date dateValiditeAvant;
+    private Date dateValiditeApres;
 	private EnumSet<TypeCommune> type = EnumSet.of(TypeCommune.COMMUNE_POLITIQUE);
 	
 	
@@ -59,17 +60,33 @@ public class CommuneCritere {
 	}
 
 	public void setDateValidite(Date date) {
-		dateValidite = date;
+        dateValiditeAvant = date;
+        dateValiditeApres = date;
 	}
 
-	/**
+    public void setDateValiditeAvant(Date dateValiditeAvant) {
+        this.dateValiditeAvant = dateValiditeAvant;
+    }
+
+    public void setDateValiditeApres(Date dateValiditeApres) {
+        this.dateValiditeApres = dateValiditeApres;
+    }
+
+    /**
 	 * @return the dateValidite
 	 */
-	public Date getDateValidite() {
-		return dateValidite;
+	public Date getDateValiditeAvant() {
+		return dateValiditeAvant;
 	}
 
-	public void setType(TypeCommune premier, TypeCommune... reste) {
+    /**
+     * @return the dateValidite
+     */
+    public Date getDateValiditeApres() {
+        return dateValiditeApres;
+    }
+
+    public void setType(TypeCommune premier, TypeCommune... reste) {
 		type = EnumSet.of(premier,reste);
 	}
 

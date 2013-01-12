@@ -28,4 +28,6 @@
  	
  	<bean id="extracteurMutation" class="org.lieuofs.extraction.commune.mutation.ExtracteurMutation">
  	</bean>
+
+  <bean id="extractionCommuneGeTax" class="org.lieuofs.extraction.commune.ExtractionGeTax"></bean>
 </beans>

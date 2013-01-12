@@ -129,8 +129,8 @@ public class CommuneOFSFichierTxtDao extends FichierOFSTxtDao implements
 			communes = mapParId.values();
 		}
 		FiltreCommuneComposite filtres = new FiltreCommuneComposite();
-		if (null != critere.getDateValidite()) {
-			filtres.ajouterFiltre(new FiltreCommuneDateValidite(critere.getDateValidite()));
+		if (null != critere.getDateValiditeApres() || null != critere.getDateValiditeAvant()) {
+			filtres.ajouterFiltre(new FiltreCommuneDateValidite(critere.getDateValiditeAvant(),critere.getDateValiditeApres()));
 		}
 		if (!EnumSet.complementOf(critere.getType()).isEmpty()) {
 			filtres.ajouterFiltre(new FiltreTypeCommune(critere.getType()));
@@ -177,20 +177,28 @@ public class CommuneOFSFichierTxtDao extends FichierOFSTxtDao implements
 		    */
 		   public final static Comparator<Date> STRICT_DATE_COMPARATOR = new StrictDateComparator();
 
-		   private final Date date;
+		   private final Date dateDebut;
+           private final Date dateFin;
 		
 		public FiltreCommuneDateValidite(Date date) {
-			this.date = date;
+			this(date,date);
 		}
-		
-		
-		@Override
+
+        public FiltreCommuneDateValidite(Date dateDebut, Date dateFin) {
+            this.dateDebut = dateDebut;
+            this.dateFin = dateFin;
+        }
+
+
+        @Override
 		public boolean accept(PersistCommune commune) {
-			if (0 < STRICT_DATE_COMPARATOR.compare(commune.getInscription().getDate(),date)) return false;
+            // Existante avant la date de début
+			if (0 < STRICT_DATE_COMPARATOR.compare(commune.getInscription().getDate(),dateDebut)) return false;
+            // Pas radiee avant la date de fin
 			if (null == commune.getRadiation()) return true;
 			Date dateRadiation = commune.getRadiation().getDate();
-			if (null != date) {
-				if (0 < STRICT_DATE_COMPARATOR.compare(date, dateRadiation)) return false;
+			if (null != dateFin) {
+				if (0 < STRICT_DATE_COMPARATOR.compare(dateFin, dateRadiation)) return false;
 			}
 			return true;
 		}
