@@ -17,11 +17,29 @@ package org.lieuofs.district.biz;
 
 import java.util.List;
 
+import org.lieuofs.commune.IMutationCommune;
+import org.lieuofs.commune.MutationCommuneCritere;
 import org.lieuofs.district.DistrictCritere;
 import org.lieuofs.district.IDistrict;
+import org.lieuofs.district.IMutationDistrict;
+import org.lieuofs.district.MutationDistrictCritere;
 
 public interface IGestionDistrict {
 	IDistrict lire(Long id);
 	List<IDistrict> rechercher(DistrictCritere critere);
+    /**
+     * Permet d'obtenir une mutation à partir d'un numéro de mutation.
+     * @param numero le numéro de mutation
+     * @return une mutation ou nul si aucune mutation ne possède le numéro fournit en paramètre.
+     */
+    IMutationDistrict lireMutation(int numero);
+
+    /**
+     * Recherche une liste de mutation à partir d'un critère de recherche.
+     * @param critere le critère de recherche. Ne doit pas être nul.
+     * @return une liste de mutation éventuellement vide si aucune mutation n'est conforme au critère.
+     */
+    List<IMutationDistrict> rechercherMutation(MutationDistrictCritere critere);
+
 
 }

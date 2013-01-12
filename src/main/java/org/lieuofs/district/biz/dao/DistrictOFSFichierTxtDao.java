@@ -16,10 +16,14 @@
 package org.lieuofs.district.biz.dao;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.lieuofs.Mutable;
+import org.lieuofs.TypeMutation;
+import org.lieuofs.commune.biz.dao.PersistCommune;
 import org.lieuofs.district.DistrictCritere;
 import org.lieuofs.district.TypeDistrict;
 import org.lieuofs.util.dao.FichierOFSTxtDao;
@@ -31,6 +35,7 @@ public class DistrictOFSFichierTxtDao extends FichierOFSTxtDao implements Distri
     /**************************************************/
 
 	private Map<Long,PersistDistrict> mapParId = new HashMap<Long,PersistDistrict>();
+    private Map<Integer,List<PersistDistrict>> mapMutation = new HashMap<Integer,List<PersistDistrict>>();
 
     /**************************************************/
     /**************** Constructeurs *******************/
@@ -64,6 +69,7 @@ public class DistrictOFSFichierTxtDao extends FichierOFSTxtDao implements Distri
 
 	private void stockerDistrict(PersistDistrict district) {
 		mapParId.put(district.getId(), district);
+        stockerMutation(district);
 	}
 	
 	@Override
@@ -79,6 +85,26 @@ public class DistrictOFSFichierTxtDao extends FichierOFSTxtDao implements Distri
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+    @Override
+    public List<PersistDistrict> getMutation(int numero) {
+        return mapMutation.get(numero);
+    }
+
+    private void stockerMutation(PersistDistrict district) {
+        Mutable mutation = district.getInscription();
+        int cle = mutation.getNumero();
+        if (!TypeMutation.PREMIERE_SAISIE.equals(mutation.getMode())) {
+            if (!mapMutation.containsKey(cle)) mapMutation.put(cle, new ArrayList<PersistDistrict>());
+            mapMutation.get(mutation.getNumero()).add(district);
+        }
+        mutation = district.getRadiation();
+        if (null != mutation) {
+            cle = mutation.getNumero();
+            if (!mapMutation.containsKey(cle)) mapMutation.put(cle, new ArrayList<PersistDistrict>());
+            mapMutation.get(mutation.getNumero()).add(district);
+        }
+    }
 
 
 }

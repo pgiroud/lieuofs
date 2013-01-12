@@ -13,14 +13,11 @@
  * You should have received a copy of the GNU General Public License
  * along with LieuOFS.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.lieuofs.district.biz.dao;
+package org.lieuofs.district;
 
-import java.util.List;
-
-import org.lieuofs.district.DistrictCritere;
-
-public interface DistrictOFSDao {
-	PersistDistrict lire(Long id);
-	List<PersistDistrict> rechercher(DistrictCritere critere);
-    List<PersistDistrict> getMutation(int numero);
+public enum TypeMutationDistrict {
+    Redefinition_de_districts_dans_le_canton
+    ,Changement_d_appartenance_cantonale_du_district
+    ,Changement_de_nom_du_district
+    ,Renumérotation_de_districts;
 }
