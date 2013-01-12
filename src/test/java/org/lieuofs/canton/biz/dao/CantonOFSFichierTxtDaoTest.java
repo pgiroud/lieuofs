@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
-
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.extractProperty;
 import org.lieuofs.canton.CantonCritere;
 import org.lieuofs.canton.ICanton;
 
@@ -40,7 +40,7 @@ public class CantonOFSFichierTxtDaoTest {
 	public void lecture() {
 		// Fribourg a l'id 10
 		ICanton canton = dao.lire(Long.valueOf(10l));
-		assertEquals("Code iso2 Fribourg","FR",canton.getCodeIso2());
+        assertThat(canton.getCodeIso2()).isEqualToIgnoringCase("FR");
 	}
 	
 	@Test
@@ -48,8 +48,10 @@ public class CantonOFSFichierTxtDaoTest {
 		CantonCritere critere = new CantonCritere();
 		critere.setCodeISO2("VS");
 		List<ICanton> cantons = dao.rechercher(critere);
-		assertEquals("Un seul canton : le Valais",1,cantons.size());
-		assertEquals("Id du Valais",new Long(23l),cantons.get(0).getId());
+        // Un seul canton : le Valais
+        assertThat(cantons).hasSize(1);
+        // Id du Valais = 23
+        assertThat(extractProperty("id").from(cantons)).contains(23L);
 	}
 	
 	@Test
@@ -58,21 +60,26 @@ public class CantonOFSFichierTxtDaoTest {
 		CantonCritere critere = new CantonCritere();
 		critere.setNom("Gen");
 		List<ICanton> cantons = dao.rechercher(critere);
-		assertEquals("Un seul canton : Genève",1,cantons.size());
-		assertEquals("Id de Genève",new Long(25l),cantons.get(0).getId());
-		
+        // Un seul canton : Genève
+        assertThat(cantons).hasSize(1);
+        // Id de Genève = 25
+        assertThat(extractProperty("id").from(cantons)).contains(25L);
+
 		// recherche avec plusieurs résultats
 		critere = new CantonCritere();
 		critere.setNom("Basel");
 		cantons = dao.rechercher(critere);
-		assertEquals("2 canton : Bâle-Ville et Bâle-Campagne",2,cantons.size());
-		
+        // 2 canton : Bâle-Ville et Bâle-Campagne
+        assertThat(cantons).hasSize(2);
+
 		// Recherche sur nom en Allemand
 		critere = new CantonCritere();
 		critere.setNom("Frei");
 		cantons = dao.rechercher(critere);
-		assertEquals("Un seul canton : Fribourg",1,cantons.size());
-		assertEquals("Id de Fribourg",new Long(10l),cantons.get(0).getId());
+        // Un seul canton : Fribourg
+        assertThat(cantons).hasSize(1);
+        // Id de Fribourg
+        assertThat(extractProperty("id").from(cantons)).contains(10L);
 	}
 	
 }
