@@ -19,6 +19,8 @@ package org.lieuofs.etat;
 
 import org.lieuofs.util.InfosONUetISO3166;
 
+import java.util.Date;
+
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -29,6 +31,7 @@ public class EtatCritere {
 	private String nom;
 	private Boolean membreONU;
 	private Boolean reconnuSuisse;
+    private Date dateReconnuSuisse;
 	private Boolean valide = Boolean.TRUE;
 	private InfosONUetISO3166 infosIsoOnu;
 	
@@ -68,7 +71,16 @@ public class EtatCritere {
 	public void setReconnuSuisse(Boolean reconnuSuisse) {
 		this.reconnuSuisse = reconnuSuisse;
 	}
-	
+
+    public void setReconnuSuisseALaDate(Date date) {
+        this.reconnuSuisse = true;
+        dateReconnuSuisse = date;
+    }
+
+    public Date getReconnuSuisseALaDate() {
+        return dateReconnuSuisse;
+    }
+
 	public Boolean getValide() {
 		return valide;
 	}

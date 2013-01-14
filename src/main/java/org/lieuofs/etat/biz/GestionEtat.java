@@ -16,10 +16,7 @@
 
 package org.lieuofs.etat.biz;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.PostConstruct;
 
@@ -90,10 +87,20 @@ public class GestionEtat implements IGestionEtat {
 				&& valeurCritere.booleanValue() != valeur) return false;
 		return true;
 	}
-	
+
+    private boolean filtreDateReconnaissanceSuisse(IEtat etat, EtatCritere critere) {
+        if (null != critere.getReconnuSuisse() && !critere.getReconnuSuisse()) {
+            return (!etat.isReconnuParLaSuisse());
+        }
+        if (null == critere.getReconnuSuisseALaDate() || null == etat.getDateReconnaissanceParLaSuisse()) return true;
+        int compare = new StrictDateComparator().compare(critere.getReconnuSuisseALaDate(), etat.getDateReconnaissanceParLaSuisse());
+        return  compare >= 0;
+    }
+
 	private boolean accept(IEtat etat, EtatCritere critere) {
 		if (!filtreBooleen(critere.getValide(),etat.isValide())) return false;
 		if (!filtreBooleen(critere.getReconnuSuisse(),etat.isReconnuParLaSuisse())) return false;
+        if (!filtreDateReconnaissanceSuisse(etat,critere)) return false;
 		if (!filtreBooleen(critere.getMembreONU(),etat.isMembreONU())) return false;
 		InfosONUetISO3166 infosIsoCritere = critere.getInfosIsoOnu();
 		if (null != infosIsoCritere) {
@@ -123,5 +130,38 @@ public class GestionEtat implements IGestionEtat {
 		}
 		return ensemble;
 	}
+
+
+    /**
+     * Cette classe de comparateur permet de comparer 2 dates (java.util.Date) en ne considérant
+     * que les parties jour, mois, année pour faire la comparaison.
+     * <br><br>
+     *
+     * Ainsi, les parties heure / minute / seconde de l'une ou l'autre des dates sont ignorées.
+     *
+     *
+     * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
+     */
+    private final static class StrictDateComparator implements Comparator<Date>
+    {
+        /**
+         * Compare 2 dates en ne considérant que les informations jour, mois et année.
+         * <br>
+         *
+         * Les paramètres doivent être des dates (java.util.Date) non nulles.
+         *
+         * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
+         * @see java.util.Date
+         */
+        public int compare(Date pO1, Date pO2)
+        {
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(pO1);
+            int date1 = cal.get(Calendar.YEAR)*10000 + cal.get(Calendar.MONTH) * 100 + cal.get(Calendar.DATE);
+            cal.setTime(pO2);
+            int date2 = cal.get(Calendar.YEAR)*10000 + cal.get(Calendar.MONTH) * 100 + cal.get(Calendar.DATE);
+            return date1 - date2;
+        }
+    }
 
 }

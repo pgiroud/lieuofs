@@ -1,14 +1,15 @@
 package org.lieuofs.etat.biz;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import javax.annotation.Resource;
 
+import org.fest.assertions.api.IterableAssert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Assertions.extractProperty;
 import static org.junit.Assert.*;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -88,4 +89,26 @@ public class GestionEtatTest {
 		Collections.sort(descriptions);
 		assertTrue("Nbre états reconnus", 193 <= etats.size());
 	}
+
+    @Test
+    public void nonReconnaissanceKosovoFin2007() {
+        EtatCritere critere = new EtatCritere();
+        Calendar cal = Calendar.getInstance();
+        cal.set(2007,Calendar.DECEMBER,31);
+        critere.setReconnuSuisseALaDate(cal.getTime());
+        Set<IEtat> etats = gestionnaire.rechercher(critere);
+        assertThat(extractProperty("numeroOFS").from(etats)).doesNotContain(8256);
+
+    }
+
+    @Test
+    public void reconnaissanceKosovoFin2008() {
+        EtatCritere critere = new EtatCritere();
+        Calendar cal = Calendar.getInstance();
+        cal.set(2008,Calendar.DECEMBER,31);
+        critere.setReconnuSuisseALaDate(cal.getTime());
+        Set<IEtat> etats = gestionnaire.rechercher(critere);
+        assertThat(extractProperty("numeroOFS").from(etats)).contains(8256);
+    }
+
 }
