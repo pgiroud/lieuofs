@@ -38,7 +38,7 @@
 	</bean>
 	
 	<bean id="etatTerritoireDao" class="org.lieuofs.geo.territoire.biz.dao.EtatTerritoireFichierXmlDao">
-		<property name="fichier" value="classpath:org/lieuofs/geo/territoire/biz/dao/eCH0072_111015.xml"/>
+		<property name="fichier" value="classpath:org/lieuofs/geo/territoire/biz/dao/eCH0072_120620.xml"/>
 		<property name="charsetName" value="UTF-8"/>
 	</bean>
 	
