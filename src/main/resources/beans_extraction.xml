@@ -30,4 +30,6 @@
  	</bean>
 
   <bean id="extractionCommuneGeTax" class="org.lieuofs.extraction.commune.ExtractionGeTax"></bean>
+
+  <bean id="extractionEtatGeTax" class="org.lieuofs.extraction.etatpays.ExtractionGeTaX"></bean>
 </beans>

@@ -18,10 +18,13 @@ package org.lieuofs.extraction.commune;
 import org.lieuofs.commune.CommuneCritere;
 import org.lieuofs.commune.ICommuneSuisse;
 import org.lieuofs.commune.biz.IGestionCommune;
+import org.lieuofs.etat.IEtat;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import javax.annotation.Resource;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 
 public class ExtractionGeTax {
@@ -29,7 +32,7 @@ public class ExtractionGeTax {
     @Resource(name="gestionCommune")
     private IGestionCommune gestionnaire;
 
-    public void extraire() {
+    public void extraire() throws IOException {
         CommuneCritere critere = new CommuneCritere();
         Calendar cal = Calendar.getInstance();
         cal.set(2012,Calendar.JANUARY,1);
@@ -47,20 +50,29 @@ public class ExtractionGeTax {
         // Une commune peut donc figurer 2 fois dans le fichier
         Set<Integer> numOFS = new HashSet<Integer>(3000);
         int nbreCommune = 0;
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(new File("ExtractionCommuneGETaX2012.csv")), Charset.forName("ISO8859-1")));
+
         for (ICommuneSuisse commune : communes) {
             if (!numOFS.contains(commune.getNumeroOFS())) {
                 nbreCommune++;
                 numOFS.add(commune.getNumeroOFS());
+                writer.write(String.valueOf(commune.getNumeroOFS()));
+                writer.write(";");
+                writer.write(commune.getNomCourt());
+                writer.write(";");
+                writer.write(commune.getCanton().getCodeIso2());
+                writer.newLine();
                 System.out.println(commune.getNumeroOFS() + " " + commune.getNomCourt());
             }
         }
+        writer.close();
         System.out.println("Nbre commune : " + nbreCommune);
     }
 
 
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         ApplicationContext context = new ClassPathXmlApplicationContext(
                 new String[] {"beans_extraction.xml"});
         ExtractionGeTax extracteur = (ExtractionGeTax)context.getBean("extractionCommuneGeTax");
