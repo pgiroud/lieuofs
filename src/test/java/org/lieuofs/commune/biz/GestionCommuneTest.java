@@ -20,6 +20,7 @@ import static org.junit.Assert.*;
 
 import java.util.Calendar;
 import java.util.List;
+import java.util.TimeZone;
 
 import javax.annotation.Resource;
 
@@ -70,6 +71,7 @@ public class GestionCommuneTest {
 		CommuneCritere critere = new CommuneCritere();
 		critere.setCodeCanton("FR");
 		Calendar cal = Calendar.getInstance();
+        cal.setTimeZone(TimeZone.getTimeZone("Europe/Zurich"));
 		cal.set(2005, Calendar.DECEMBER, 31);
 		critere.setDateValidite(cal.getTime());
 		List<ICommuneSuisse> communes = gestionnaire.rechercher(critere);
