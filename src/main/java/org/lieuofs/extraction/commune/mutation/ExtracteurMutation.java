@@ -74,8 +74,8 @@ public class ExtracteurMutation {
 		        new String[] {"beans_extraction.xml"});
 		ExtracteurMutation extracteur = (ExtracteurMutation)context.getBean("extracteurMutation");
 		Calendar cal = Calendar.getInstance();
-		cal.set(2011, Calendar.JANUARY,1);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("MutationCommune2011.txt"),"Windows-1252"));
+		cal.set(2013, Calendar.JANUARY,1);
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("MutationCommune2013.txt"),"Windows-1252"));
 		extracteur.extraireMutation(cal.getTime(), writer);
 	}	
 	
