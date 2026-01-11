@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -16,29 +16,29 @@
 package org.lieuofs.commune.biz;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.fest.assertions.api.Assertions.assertThat;
-
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.commune.IMutationCommune;
 import org.lieuofs.commune.MutationCommuneCritere;
 import org.lieuofs.commune.TypeMutationCommune;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
+import static org.assertj.core.api.Assertions.*;
+import static org.lieuofs.ContexteTest.INSTANCE;
+
 public class GestionMutationCommuneTest {
 
-	@Resource(name = "gestionCommune")
 	private IGestionCommune gestionnaire;
+
+	@BeforeEach
+	public void construireContexte() throws IOException {
+		gestionnaire = INSTANCE.construireGestionCommune();
+	}
 
 	@Test
 	public void exclusion() {
@@ -111,22 +111,22 @@ public class GestionMutationCommuneTest {
         assertThat(mutations).hasSize(82);
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void rechercherMutationNulle() {
-		gestionnaire.rechercherMutation(null);
+		assertThatExceptionOfType(IllegalArgumentException.class) .isThrownBy(
+				() -> gestionnaire.rechercherMutation(null));
 	}
 	
 	@Test
-	public void testRechercherMutationDepuisDate() {
+	public void rechercherMutationDepuisDate() {
 		MutationCommuneCritere critere = new MutationCommuneCritere();
 		Calendar cal = Calendar.getInstance();
-		cal.set(2006, Calendar.JANUARY,1);
+		cal.set(2015, Calendar.JANUARY,1);
 		critere.setDateDebut(cal.getTime());
 		List<IMutationCommune> mutations = gestionnaire.rechercherMutation(critere);
 		List<String> descriptions = new ArrayList<String>();
         int i = 0;
 		for (IMutationCommune mut : mutations) {
-            System.out.println("Mutation " + i);
 			descriptions.add(mut.getDescription());
             i++;
 		}

@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,45 +15,54 @@
  */
 package org.lieuofs.commune.biz;
 
-
-import static org.junit.Assert.*;
-
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.commune.CommuneCritere;
 import org.lieuofs.commune.ICommuneSuisse;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.lieuofs.ContexteTest.INSTANCE;
+
+
 public class GestionCommuneTest {
 
-	@Resource(name = "gestionCommune")
 	private IGestionCommune gestionnaire;
-	
+
+	@BeforeEach
+	public void construireContexte() throws IOException {
+		gestionnaire = INSTANCE.construireGestionCommune();
+	}
+
 	@Test
-	public void lecture() {
-		ICommuneSuisse commune = gestionnaire.lire(12060l);
-		assertEquals("N° OFS de Givisiez",2197,commune.getNumeroOFS());
-		assertEquals("Nom Givisiez","Givisiez",commune.getNom());
-		assertEquals("N° OFS de la Sarine",1004,commune.getDistrict().getNumeroOFS());
-		assertEquals("Canton de Fribourg","FR",commune.getCanton().getCodeIso2());
-		
-		commune = gestionnaire.lire(Long.valueOf(-3456l));
-		assertNull("Lecture avec identifiant négatif",commune);
-	}	
-	
-	@Test(expected=IllegalArgumentException.class)
+	public void communeGivisiez() {
+		ICommuneSuisse commune = gestionnaire.lire(12060L);
+		assertThat(commune.getNumeroOFS()).describedAs("N° OFS de Givisiez").isEqualTo(2197);
+		assertThat(commune.getNom()).describedAs("Nom Givisiez").isEqualTo("Givisiez");
+
+		assertThat(commune.getDistrict().getNumeroOFS())
+				.describedAs("N° OFS du district de la Sarine").isEqualTo(1004);
+		assertThat(commune.getCanton().getCodeIso2())
+				.describedAs("Code ISO 2 du canton de Fribourg").isEqualTo("FR");
+
+	}
+
+	@Test
+	public void identifiantNegatif() {
+		ICommuneSuisse commune = gestionnaire.lire(Long.valueOf(-3456l));
+		assertThat(commune).isNull();
+	}
+
+	@Test
 	public void lectureCommuneNulle() {
-		gestionnaire.lire(null);
+		assertThatExceptionOfType(IllegalArgumentException.class) .isThrownBy(
+				() -> gestionnaire.lire(null)).describedAs("Identifiant nul -> commune nulle !").withMessage("L'identifiant d'historisation ne peut pas être nul !!");
 	}
 
 	
@@ -61,8 +70,11 @@ public class GestionCommuneTest {
 	public void rechercheCommuneGenevoise() {
 		CommuneCritere critere = new CommuneCritere();
 		critere.setCodeCanton("GE");
+		Calendar cal = Calendar.getInstance();
+		cal.set(2025,Calendar.JANUARY,1);
+		critere.setDateValidite(cal.getTime());
 		List<ICommuneSuisse> communes = gestionnaire.rechercher(critere);
-		assertEquals("Nbre commune",45,communes.size());
+		assertThat(communes).hasSize(45);
 	}
 	
 	@Test
@@ -82,7 +94,8 @@ public class GestionCommuneTest {
 				break;
 			}
 		}
-		assertTrue("Le 31 décembre 2005 la Tour-de-Trême est une commune fribourgeoise",trouve);
+		assertThat(trouve).describedAs("Le 31 décembre 2005 la Tour-de-Trême est une commune fribourgeoise")
+						.isTrue();
 		cal.add(Calendar.DATE, 1);
 		critere.setDateValidite(cal.getTime());
 		communes = gestionnaire.rechercher(critere);
@@ -93,7 +106,8 @@ public class GestionCommuneTest {
 				break;
 			}
 		}
-		assertTrue("Le 1er janvier 2006 la Tour-de-Trême n'est plus une commune fribourgeoise",!trouve);
+		assertThat(trouve).describedAs("Le 1er janvier 2006 la Tour-de-Trême n'est plus une commune fribourgeoise")
+				.isFalse();
 	}
 	
 	@Test
@@ -101,13 +115,16 @@ public class GestionCommuneTest {
 		CommuneCritere critere = new CommuneCritere();
 		critere.setCodeCanton("GE");
 		List<ICommuneSuisse> communes = gestionnaire.rechercher(critere);
-		ICommuneSuisse commune = communes.get(0);
-		assertNull("Une commune genevoise n'a pas de district",commune.getDistrict());
+		ICommuneSuisse commune = communes.getFirst();
+		assertThat(commune.getDistrict()).describedAs("Une commune genevoise n'a pas de district").isNull();
 	}
 	
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void rechercherCommuneNulle() {
-		gestionnaire.rechercher(null);
+		assertThatExceptionOfType(IllegalArgumentException.class) .isThrownBy(
+				() -> gestionnaire.rechercher(null))
+				.describedAs("Rechercher avec un critère null -> commune nulle")
+				.withMessage("Le critère de recherche ne peut pas être nul !");
 	}
 	
 	

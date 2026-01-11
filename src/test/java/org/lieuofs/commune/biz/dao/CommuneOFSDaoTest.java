@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -16,37 +16,36 @@
 package org.lieuofs.commune.biz.dao;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.Mutable;
 import org.lieuofs.TypeMutation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
 import static org.lieuofs.TypeMutation.*;
 
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
 public class CommuneOFSDaoTest {
 
-	@Resource(name = "communeDao")
 	private CommuneOFSDao dao;
 
 	final Logger logger = LoggerFactory.getLogger(CommuneOFSDaoTest.class);
+
+	@BeforeEach
+	public void construireContexte() throws IOException {
+		dao = INSTANCE.construireDaoCommune();
+	}
+
 
 	private List<PersistCommune> getCommunesRadiees(List<PersistCommune> communes, int numMutation) {
 		List<PersistCommune> communesFiltrees = new ArrayList<PersistCommune>();
@@ -69,13 +68,13 @@ public class CommuneOFSDaoTest {
 	private void typeRadiationIn(Set<TypeMutation> types, List<PersistCommune> communes) {
 		boolean test = true;
 		for (PersistCommune commune : communes) if (!types.contains(commune.getRadiation().getMode())) test = false;
-		assertTrue("Type radiation",test);
+		assertThat(test).isTrue();
 	}
 
 	private void typeInscriptionIn(Set<TypeMutation> types, List<PersistCommune> communes) {
 		boolean test = true;
 		for (PersistCommune commune : communes) if (!types.contains(commune.getInscription().getMode())) test = false;
-		assertTrue("Type inscription",test);
+		assertThat(test).isTrue();
 	}
 	
 	
@@ -84,27 +83,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 2328 : Bulle + La-Tour-de-Trême --> Bulle
 		int numMutation = 2328;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre communes",3,communes.size());
-		
+		assertThat(communes).hasSize(3);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",2,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(2);
 		typeRadiationIn(EnumSet.of(MODIF_TERR, RADIATION),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR),communesInscrites);
 		
 		// Mutation N° 1510 : Altavilla + Murten --> Murten
 		numMutation = 1510;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre communes",3,communes.size());
-		
+		assertThat(communes).hasSize(3);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",2,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(2);
 		typeRadiationIn(EnumSet.of(MODIF_TERR, RADIATION),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR),communesInscrites);	
 	}
 	
@@ -113,27 +112,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 2162 : Albeuve + Montbovon + Neirivue + Lessoc --> Haut-Intyamon
 		int numMutation = 2162;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",5,communes.size());
-		
+		assertThat(communes).hasSize(5);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",4,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(4);
 		typeRadiationIn(EnumSet.of(RADIATION),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(CREATION),communesInscrites);
 		
 		// Mutation N° 1562 : Lohn + Ammannsegg --> Lohn-Ammannsegg
 		numMutation = 1562;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",3,communes.size());
-		
+		assertThat(communes).hasSize(3);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",2,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(2);
 		typeRadiationIn(EnumSet.of(RADIATION),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(CREATION),communesInscrites);		
 	}
 	
@@ -144,14 +143,14 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 1481 : canton AG   Arni-Islisberg --> Arni + Islisberg
 		int numMutation = 1481;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",3,communes.size());
-		
+		assertThat(communes).hasSize(3);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(RADIATION),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",2,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(2);
 		typeInscriptionIn(EnumSet.of(CREATION),communesInscrites);		
 	}
 	
@@ -160,27 +159,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 1483 : canton BE Bolligen --> Bolligen + Ittigen + Ostermundigen
 		int numMutation = 1483;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",4,communes.size());
-		
+		assertThat(communes).hasSize(4);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(MODIF_TERR),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",3,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(3);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR,CREATION),communesInscrites);
 
 		// Mutation N° 1565 : Rubigen --> Allmendigen + Rubigen + Trimstein
 		numMutation = 1565;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",4,communes.size());
-		
+		assertThat(communes).hasSize(4);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(MODIF_TERR),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",3,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(3);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR,CREATION),communesInscrites);		
 	}
 	
@@ -189,27 +188,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 1909 : canton TG : Gachnang + Frauenfeld --> Gachnang + Frauenfeld
 		int numMutation = 1909;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",4,communes.size());
-		
+		assertThat(communes).hasSize(4);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",2,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(2);
 		typeRadiationIn(EnumSet.of(MODIF_TERR),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",2,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(2);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR),communesInscrites);	
 		
 		// Mutation N° 1858 : Opfershofen + Sulgen --> Opfershofen + Sulgen
 		numMutation = 1858;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",4,communes.size());
-		
+		assertThat(communes).hasSize(4);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",2,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(2);
 		typeRadiationIn(EnumSet.of(MODIF_TERR),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",2,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(2);
 		typeInscriptionIn(EnumSet.of(MODIF_TERR),communesInscrites);		
 	}
 	
@@ -218,27 +217,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 1075 : canton FR Vully-le-Haut --> Haut-Vully
 		int numMutation = 1075;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",2,communes.size());
-		
+		assertThat(communes).hasSize(2);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(CHGT_NOM_COMM),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(CHGT_NOM_COMM),communesInscrites);	
 		
 		// Mutation N° 1477 : Yverdon --> Yverdon-les-Bains
 		numMutation = 1477;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",2,communes.size());
-		
+		assertThat(communes).hasSize(2);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(CHGT_NOM_COMM),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(CHGT_NOM_COMM),communesInscrites);			
 	}
 	
@@ -247,27 +246,27 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 2375 : canton VD Cudrefin
 		int numMutation = 2375;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",2,communes.size());
-		
+		assertThat(communes).hasSize(2);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(RATT),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(RATT),communesInscrites);	
 		
 		// Mutation N° 1890 : la commune de Vellerat est passée du canton de Berne au canton du Jura
 		numMutation = 1890;
 		communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",2,communes.size());
-		
+		assertThat(communes).hasSize(2);
+
 		communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(RATT),communesRadiees);
 		
 		communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(RATT),communesInscrites);		
 	}
 	
@@ -276,17 +275,15 @@ public class CommuneOFSDaoTest {
 		// Mutation N° 1372 : canton BE Belp
 		int numMutation = 1372;
 		List<PersistCommune> communes = dao.getMutation(numMutation);
-		assertEquals("Nbre commune",2,communes.size());
-		
+		assertThat(communes).hasSize(2);
+
 		List<PersistCommune> communesRadiees = getCommunesRadiees(communes,numMutation);
-		assertEquals("Nbre communes radiées",1,communesRadiees.size());
+		assertThat(communesRadiees).hasSize(1);
 		typeRadiationIn(EnumSet.of(RENUMEROTATION_FORMELLE),communesRadiees);
 		
 		List<PersistCommune> communesInscrites = getCommunesCrees(communes,numMutation);
-		assertEquals("Nbre communes crées",1,communesInscrites.size());
+		assertThat(communesInscrites).hasSize(1);
 		typeInscriptionIn(EnumSet.of(RENUMEROTATION_FORMELLE),communesInscrites);		
 	}
-	
-	
-	
+
 }

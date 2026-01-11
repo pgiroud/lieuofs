@@ -31,7 +31,7 @@ class DescriptionTexteWriter implements MutationCommuneWriter {
 
 	@Override
 	public String ecrireMutation(IMutationCommune mutation) {
-		EnumSet<TypeMutationCommune> typeEcrit = EnumSet.of(FUSION,INCLUSION,CHANGEMENT_NOM,ECHANGE_TERRITOIRE);
+		EnumSet<TypeMutationCommune> typeEcrit = EnumSet.of(FUSION,INCLUSION,CHANGEMENT_NOM,ECHANGE_TERRITOIRE,CHANGEMENT_CANTON);
 		if (typeEcrit.contains(mutation.getType())) return mutation.getDescription() + "\n";
 		return null;
 	}

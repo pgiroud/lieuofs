@@ -48,10 +48,11 @@ public class CommuneOFSFichierTxtDao extends FichierOFSTxtDao implements
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public CommuneOFSFichierTxtDao() {
-		super();
+	public CommuneOFSFichierTxtDao(String fichierAvecCheminComplet) {
+		super(fichierAvecCheminComplet);
+		chargerResource();
 	}
-	
+
 	/**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/

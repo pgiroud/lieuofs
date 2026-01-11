@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -16,27 +16,30 @@
 package org.lieuofs.district.biz.dao;
 
 
-import static org.junit.Assert.assertEquals;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import javax.annotation.Resource;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
 public class DistrictOFSFichierTxtDaoTest {
 
-	@Resource(name = "districtDao")
+
 	private DistrictOFSDao dao;
-	
+
+	@BeforeEach
+	public void construireContexte() {
+		dao = INSTANCE.construireDaoDistrict();
+	}
+
+
 	@Test
 	public void lecture() {
 		// District de la Sarine N° OFS 1004
-		PersistDistrict district = dao.lire(Long.valueOf(10104l));
-		assertEquals("N° OFS de la Sarine",1004,district.getNumero());
+		PersistDistrict district = dao.lire(10104L);
+		assertThat(district.getNumero()).describedAs("N° OFS de la Sarine")
+						.isEqualTo(1004);
 	}
 	
 	

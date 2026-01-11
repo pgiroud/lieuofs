@@ -15,20 +15,20 @@
  */
 package org.lieuofs.geo.territoire.biz.dao;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.Characters;
 import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
@@ -36,7 +36,6 @@ import javax.xml.stream.events.XMLEvent;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 
 import org.lieuofs.geo.territoire.biz.EtatTerritoireCritere;
 import org.lieuofs.util.InfosONUetISO3166;
@@ -53,8 +52,8 @@ public class EtatTerritoireFichierXmlDao implements EtatTerritoireDao {
     /**************************************************/
 
 	final Logger logger = LoggerFactory.getLogger(FichierOFSTxtDao.class);
-	private Resource fichier;
-	private String charsetName;
+	private final String fichierDansClasspathAvecCheminComplet;
+	private final String charsetName;
 	private DateFormat dateFmt;
 	
 	private Set<EtatTerritoirePersistant> tous = new HashSet<EtatTerritoirePersistant>(290);
@@ -65,122 +64,156 @@ public class EtatTerritoireFichierXmlDao implements EtatTerritoireDao {
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public EtatTerritoireFichierXmlDao() {
+	public EtatTerritoireFichierXmlDao(String fichierAvecCheminComplet) {
 		super();
+		this.fichierDansClasspathAvecCheminComplet = fichierAvecCheminComplet;
+		charsetName = "UTF-8";
 		dateFmt = new SimpleDateFormat("yyyy-MM-dd");
+		chargerResource();
 	}
-	
-	/**************************************************/
-    /******* Accesseurs / Mutateurs *******************/
-    /**************************************************/
-	
-	public void setFichier(Resource fichier) {
-		this.fichier = fichier;
-	}
-	
-	public void setCharsetName(String charsetName) {
-		this.charsetName = charsetName;
-	}
+
 	
 	/**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/
 
-	@PostConstruct
-	public void chargerResource() throws IOException, XMLStreamException, FactoryConfigurationError, ParseException {
-        XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(fichier.getInputStream(),this.charsetName);
-    	EtatTerritoirePersistant etatTerritoire = null;
-        while (reader.hasNext()) {
-            XMLEvent event = (XMLEvent) reader.next();
-  	      	if (event.isStartElement()) {
-  		        StartElement element = (StartElement) event;
-  		        String nomElem = element.getName().toString();
-  		        if ("country".equals(nomElem)) {
-  		        	etatTerritoire = new EtatTerritoirePersistant();
-  		        } else if ("id".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setNumeroOFS(Integer.parseInt(characters.getData()));
-  		        } else if ("unId".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166()); 
-  		        	etatTerritoire.getInfosISO().setCodeNumeriqueONU(Integer.parseInt(characters.getData()));
-  		        } else if ("iso2Id".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166());
-  		        	etatTerritoire.getInfosISO().setCodeIsoAlpha2(characters.getData());
-  		        } else if ("iso3Id".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166()); 
-  		        	etatTerritoire.getInfosISO().setCodeIsoAlpha3(characters.getData());
-  		        } else if ("shortNameDe".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterFormeCourte("de", characters.getData());
-  		        } else if ("shortNameFr".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterFormeCourte("fr", characters.getData());
-  		        } else if ("shortNameIt".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterFormeCourte("it", characters.getData());
-  		        } else if ("shortNameEn".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterFormeCourte("en", characters.getData());
-  		        } else if ("officialNameDe".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterDesignationOfficielle("de", characters.getData());
-  		        } else if ("officialNameFr".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterDesignationOfficielle("fr", characters.getData());
-  		        } else if ("officialNameIt".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterDesignationOfficielle("it", characters.getData());
-  		        } else if("continent".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setNumContinent(Integer.parseInt(characters.getData()));
-  		        } else if ("region".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setNumRegion(Integer.parseInt(characters.getData()));
-  		        } else if ("state".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setEtat(Boolean.valueOf(characters.getData()));
-  		        } else if ("areaState".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setNumEtatRattachement(Integer.parseInt(characters.getData()));
-  		        } else if ("unMember".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setMembreONU(Boolean.valueOf(characters.getData()));
-  		        } else if ("unEntryDate".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setDateEntreeONU(dateFmt.parse(characters.getData()));
-  		        }else if ("recognizedCh".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setReconnuSuisse(Boolean.valueOf(characters.getData()));
-  		        } else if ("recognizedDate".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setDateReconnaissance(dateFmt.parse(characters.getData()));
-  		        } else if ("remarkDe".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterRemarque("de", characters.getData());
-  		        } else if ("remarkFr".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterRemarque("fr", characters.getData());
-  		        } else if ("remarkIt".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.ajouterRemarque("it", characters.getData());
-  		        } else if ("entryValid".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setValide(Boolean.valueOf(characters.getData()));
-  		        } else if ("dateOfChange".equals(nomElem)) {
-  		        	Characters characters = (Characters) reader.next();
-  		        	etatTerritoire.setDateDernierChangement(dateFmt.parse(characters.getData()));
-  		        }
-  	      	} else if (event.isEndElement()) {
-  	      		EndElement element = (EndElement)event;
-  	      		if ("country".equals(element.getName().toString())) {
-  	      			stockerEtatTerritoire(etatTerritoire);
-  	      		}
-  	      	}
-        }		
-	}	
+	private ClassLoader getClassLoader() {
+		ClassLoader cl = null;
+		try {
+			cl = Thread.currentThread().getContextClassLoader();
+		}
+		catch (Throwable ex) {}
+		if (cl == null) {
+			cl = FichierOFSTxtDao.class.getClassLoader();
+			if (cl == null) {
+				try {
+					cl = ClassLoader.getSystemClassLoader();
+				}
+				catch (Throwable ex) {
+				}
+			}
+		}
+		return cl;
+	}
+
+	boolean exist() {
+		try {
+			ClassLoader cl = getClassLoader();
+			InputStream is = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+			return null != is && new BufferedReader(new InputStreamReader(is,charsetName)).ready();
+		} catch (IOException ioe) {
+			logger.debug("Pas de lecture possible dans 'classpath:" + fichierDansClasspathAvecCheminComplet + "'",ioe);
+		}
+		return false;
+	}
+
+	private InputStream getInputStream() {
+		ClassLoader cl = getClassLoader();
+		URL resource = cl.getResource(fichierDansClasspathAvecCheminComplet);
+		InputStream stream = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+		return stream;
+	}
+
+
+	private void chargerResource() {
+		try (InputStream flux = getInputStream()) {
+			XMLEventReader reader = XMLInputFactory.newInstance().createXMLEventReader(flux, this.charsetName);
+			EtatTerritoirePersistant etatTerritoire = null;
+			while (reader.hasNext()) {
+				XMLEvent event = (XMLEvent) reader.next();
+				if (event.isStartElement()) {
+					StartElement element = (StartElement) event;
+					String nomElem = element.getName().toString();
+					if ("country".equals(nomElem)) {
+						etatTerritoire = new EtatTerritoirePersistant();
+					} else if ("id".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setNumeroOFS(Integer.parseInt(characters.getData()));
+					} else if ("unId".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166());
+						etatTerritoire.getInfosISO().setCodeNumeriqueONU(Integer.parseInt(characters.getData()));
+					} else if ("iso2Id".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166());
+						etatTerritoire.getInfosISO().setCodeIsoAlpha2(characters.getData());
+					} else if ("iso3Id".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						if (null == etatTerritoire.getInfosISO()) etatTerritoire.setInfosISO(new InfosONUetISO3166());
+						etatTerritoire.getInfosISO().setCodeIsoAlpha3(characters.getData());
+					} else if ("shortNameDe".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterFormeCourte("de", characters.getData());
+					} else if ("shortNameFr".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterFormeCourte("fr", characters.getData());
+					} else if ("shortNameIt".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterFormeCourte("it", characters.getData());
+					} else if ("shortNameEn".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterFormeCourte("en", characters.getData());
+					} else if ("officialNameDe".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterDesignationOfficielle("de", characters.getData());
+					} else if ("officialNameFr".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterDesignationOfficielle("fr", characters.getData());
+					} else if ("officialNameIt".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterDesignationOfficielle("it", characters.getData());
+					} else if ("continent".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setNumContinent(Integer.parseInt(characters.getData()));
+					} else if ("region".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setNumRegion(Integer.parseInt(characters.getData()));
+					} else if ("state".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setEtat(Boolean.valueOf(characters.getData()));
+					} else if ("areaState".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setNumEtatRattachement(Integer.parseInt(characters.getData()));
+					} else if ("unMember".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setMembreONU(Boolean.valueOf(characters.getData()));
+					} else if ("unEntryDate".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setDateEntreeONU(dateFmt.parse(characters.getData()));
+					} else if ("recognizedCh".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setReconnuSuisse(Boolean.valueOf(characters.getData()));
+					} else if ("recognizedDate".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setDateReconnaissance(dateFmt.parse(characters.getData()));
+					} else if ("remarkDe".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterRemarque("de", characters.getData());
+					} else if ("remarkFr".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterRemarque("fr", characters.getData());
+					} else if ("remarkIt".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.ajouterRemarque("it", characters.getData());
+					} else if ("entryValid".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setValide(Boolean.valueOf(characters.getData()));
+					} else if ("dateOfChange".equals(nomElem)) {
+						Characters characters = (Characters) reader.next();
+						etatTerritoire.setDateDernierChangement(dateFmt.parse(characters.getData()));
+					}
+				} else if (event.isEndElement()) {
+					EndElement element = (EndElement) event;
+					if ("country".equals(element.getName().toString())) {
+						stockerEtatTerritoire(etatTerritoire);
+					}
+				}
+			}
+
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
 	
 	private void stockerEtatTerritoire(EtatTerritoirePersistant etatTerritoire) {
 		mapParNum.put(etatTerritoire.getNumeroOFS(), etatTerritoire);

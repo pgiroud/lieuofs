@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,26 +15,23 @@
  */
 package org.lieuofs.district.biz;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.lieuofs.commune.IMutationCommune;
-import org.lieuofs.commune.TypeMutationCommune;
-import org.lieuofs.commune.biz.IGestionCommune;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.district.IMutationDistrict;
 import org.lieuofs.district.TypeMutationDistrict;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.annotation.Resource;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
 public class GestionMutationDistrictTest {
 
-    @Resource(name = "gestionDistrict")
     private IGestionDistrict gestionnaire;
+
+    @BeforeEach
+    public void contexte() {
+        gestionnaire = INSTANCE.construireGestionDistrict();
+    }
 
     @Test
     public void redefinitionDistrictDansCanton() {

@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -16,23 +16,16 @@
 
 package org.lieuofs.extraction.commune.mutation;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
 import org.lieuofs.commune.IMutationCommune;
 import org.lieuofs.commune.MutationCommuneCritere;
+
 import org.lieuofs.commune.biz.IGestionCommune;
+import org.lieuofs.extraction.commune.ConstructeurContexteGestionCommune;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
@@ -40,17 +33,21 @@ import org.lieuofs.commune.biz.IGestionCommune;
  */
 public class ExtracteurMutation {
 
-	@Resource(name="gestionCommune")
-	private IGestionCommune gestionnaire;
-	
-	@Resource(name="mutationWriter")
-	private MutationCommuneWriter mutWriter;
-	
-	public void extraireMutation(Date depuis, Writer writer) throws IOException {
-		extraireMutation(depuis,null,writer);
+	private final IGestionCommune gestionnaire;
+	private final MutationCommuneWriter redacteur;
+
+	public ExtracteurMutation(MutationCommuneWriter redacteur) throws IOException {
+		gestionnaire = new ConstructeurContexteGestionCommune().construireGestionCommune();
+		this.redacteur = redacteur;
 	}
 
-	public void extraireMutation(Date depuis, Date jusqua, Writer writer) throws IOException {
+
+
+	public void extraireMutation(Date depuis, Writer fluxSortantCaractere) throws IOException {
+		extraireMutation(depuis,null,fluxSortantCaractere);
+	}
+
+	private List<IMutationCommune> obtenirMutation(Date depuis, Date jusqua) {
 		MutationCommuneCritere critere = new MutationCommuneCritere();
 		if (null != depuis) {
 			critere.setDateDebut(depuis);
@@ -58,26 +55,44 @@ public class ExtracteurMutation {
 		if (null != jusqua) {
 			critere.setDateFin(jusqua);
 		}
-		List<IMutationCommune> mutations = gestionnaire.rechercherMutation(critere);
-		for (IMutationCommune mut : mutations) {
-			String mutStr = mutWriter.ecrireMutation(mut);
-			if (null != mutStr) {
-				writer.append(mutStr);
-			}
-		}
-		writer.close();
+		return gestionnaire.rechercherMutation(critere);
 	}
-	
-	
-	public static void main(String[] args) throws IOException {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans_extraction.xml"});
-		ExtracteurMutation extracteur = (ExtracteurMutation)context.getBean("extracteurMutation");
+
+	private void ecrire(String chaine, Writer fluxSortantCaractere) {
+		try {
+			fluxSortantCaractere.append(chaine);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+	}
+
+	private static boolean isNotBlank(String str) {
+		return null != str && !str.isBlank();
+	}
+
+	public void extraireMutation(Date depuis, Date jusqua, Writer fluxSortantCaractere) {
+		obtenirMutation(depuis,jusqua).stream()
+				.map(redacteur::ecrireMutation)
+				.filter(ExtracteurMutation::isNotBlank)
+				.forEach(s -> ecrire(s,fluxSortantCaractere));
+	}
+
+	private static void sortie(Calendar cal, MutationCommuneWriter redacteur, String nomFichierProduit) throws IOException {
+		ExtracteurMutation extracteur = new ExtracteurMutation(redacteur);
+		try (OutputStream fluxSortantBinaire = new FileOutputStream(nomFichierProduit);
+			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,"UTF-8");
+			 Writer fluxSortantCaractereAvecTampon = new BufferedWriter(fluxSortantCaractere);
+		) {
+			extracteur.extraireMutation(cal.getTime(), fluxSortantCaractereAvecTampon);
+		}
+	}
+
+	static void main(String[] args) throws IOException {
 		Calendar cal = Calendar.getInstance();
-		cal.set(2013, Calendar.JANUARY,1);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("MutationCommune2013.txt"),"Windows-1252"));
-		extracteur.extraireMutation(cal.getTime(), writer);
-	}	
+		cal.set(2025, Calendar.JANUARY,2);
+		sortie(cal,new MutCommuneFreemarkerRefonteSQLWriter("Script 2603"),"MutationCommune2025.sql");
+		sortie(cal,new DescriptionTexteWriter(),"MutationCommune2025.txt");
+	}
 	
 	
 }

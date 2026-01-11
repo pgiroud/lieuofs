@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,31 +15,31 @@
  */
 package org.lieuofs.district.biz;
 
-import javax.annotation.Resource;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static org.junit.Assert.*;
 
 
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.district.IDistrict;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
+
 public class GestionDistrictTest {
 
-	@Resource(name = "gestionDistrict")
+
 	private IGestionDistrict gestionnaire;
-	
+
+	@BeforeEach
+	public void contexte() {
+		gestionnaire = INSTANCE.construireGestionDistrict();
+	}
+
 	@Test
-	public void lecture() {
-		IDistrict district = gestionnaire.lire(Long.valueOf(10104l));
-		assertEquals("N° OFS de la Sarine",1004,district.getNumeroOFS());
-		assertEquals("Canton de Fribourg","FR",district.getCanton().getCodeIso2());
+	public void laSarineDuCantonDeFribourg() {
+		IDistrict district = gestionnaire.lire(10104L);
+		// N° OFS de la Sarine
+		assertThat(district.getNumeroOFS()).isEqualTo(1004);
+		assertThat(district.getCanton().getCodeIso2()).isEqualTo("FR");
 	}
 
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,27 +15,30 @@
  */
 package org.lieuofs.commune.biz;
 
-import org.fest.assertions.api.IterableAssert;
-import org.junit.runner.RunWith;
+
+import org.assertj.core.api.IterableAssert;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.commune.CommuneCritere;
 import org.lieuofs.commune.ICommuneSuisse;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.extractProperty;
-
-import org.junit.Test;
-import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
+import static org.assertj.core.api.AssertionsForClassTypes.extractProperty;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
+
 public class RechercheCommuneTest {
 
-    @Resource(name = "gestionCommune")
     private IGestionCommune gestionnaire;
+
+
+    @BeforeEach
+    public void construireContexte() throws IOException {
+        gestionnaire = INSTANCE.construireGestionCommune();
+    }
 
     @Test
     public void rechercheValideAUneDateDonnee() {
@@ -57,7 +60,7 @@ public class RechercheCommuneTest {
         cal.set(2012,Calendar.DECEMBER,31);
         critere.setDateValiditeAvant(cal.getTime());
         List<ICommuneSuisse> communes = gestionnaire.rechercher(critere);
-        IterableAssert<Object> liste = assertThat(extractProperty("numeroOFS").from(communes));
+        IterableAssert<Object> liste = assertThat((Iterable<?>) extractProperty("numeroOFS").from(communes));
         // La commune Collina d'Oro(5236) a absorbé la commune Carabietta(5169) le 01.04.2012
         // Les 2 communes ont donc existé en 2012
         liste.contains(5236, 5169);

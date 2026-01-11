@@ -16,16 +16,13 @@
 
 package org.lieuofs.extraction.commune.historisation;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.util.Collections;
+import java.io.*;
+
 import java.util.Comparator;
 import java.util.List;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.lieuofs.extraction.commune.ConstructeurContexteGestionCommune;
+
 
 import org.lieuofs.commune.CommuneCritere;
 import org.lieuofs.commune.ICommuneSuisse;
@@ -36,31 +33,55 @@ import org.lieuofs.commune.biz.IGestionCommune;
  *
  */
 public class ExtractionNumHistorisationCommune {
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) throws IOException {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans_lieuofs.xml"});
+
+	private final IGestionCommune gestionnaire;
+	private final NumeroHistorisationCommuneWriter redacteur;
+
+	public ExtractionNumHistorisationCommune() throws IOException {
+		gestionnaire = new ConstructeurContexteGestionCommune().construireGestionCommune();
+		redacteur = construireRedacteur();
+	}
+
+	private List<ICommuneSuisse> obtenirCommunes() {
 		CommuneCritere critere = new CommuneCritere();
-		IGestionCommune gestionnaire = (IGestionCommune)context.getBean("gestionCommune");
 		List<ICommuneSuisse> communes = gestionnaire.rechercher(critere);
-		Collections.sort(communes, new Comparator<ICommuneSuisse>(){
+		communes.sort(new Comparator<ICommuneSuisse>() {
 			public int compare(ICommuneSuisse com1, ICommuneSuisse com2) {
 				return com1.getNumeroOFS() - com2.getNumeroOFS();
 			}
 		});
-		
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("NumeroHistorisationCommune.sql"),"Windows-1252"));
-		NumeroHistorisationCommuneWriter commWriter = new NumeroHistorisationRefonteSQLWriter();
-		for (ICommuneSuisse commune : communes) {
-			String numHistStr = commWriter.ecrireNumero(commune);
-			if (null != numHistStr) {
-				writer.append(numHistStr);
-			}
+		return communes;
+	}
+
+	public void extraire(Writer fluxSortantCaractere) throws IOException {
+		obtenirCommunes().stream().map(redacteur::ecrireNumero)
+				.filter(String::isBlank)
+				.forEach(s -> ecrire(s,fluxSortantCaractere));
+	}
+
+	private void ecrire(String chaîne, Writer fluxSortantCaractere) {
+		try {
+			fluxSortantCaractere.append(chaîne);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
 		}
-		writer.close();
-		
+	}
+
+	private NumeroHistorisationCommuneWriter construireRedacteur() {
+		return new NumeroHistorisationRefonteSQLWriter();
+	}
+
+
+	/**
+	 * @param args
+	 */
+	static void main(String[] args) throws IOException {
+		ExtractionNumHistorisationCommune extracteur = new ExtractionNumHistorisationCommune();
+		try (OutputStream fluxSortantBinaire = new FileOutputStream("NumeroHistorisationCommune.sql");
+			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,"Windows-1252");
+			 Writer fluxSortantCaractereAvecTampon = new BufferedWriter(fluxSortantCaractere);) {
+			extracteur.extraire(fluxSortantCaractereAvecTampon);
+		}
 	}
 	
 }

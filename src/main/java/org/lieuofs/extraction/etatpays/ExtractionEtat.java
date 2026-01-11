@@ -16,22 +16,16 @@
 
 package org.lieuofs.extraction.etatpays;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-import org.springframework.util.StringUtils;
-
 import org.lieuofs.geo.territoire.biz.EtatTerritoireCritere;
 import org.lieuofs.geo.territoire.biz.dao.EtatTerritoireDao;
+import org.lieuofs.geo.territoire.biz.dao.EtatTerritoireFichierXmlDao;
 import org.lieuofs.geo.territoire.biz.dao.EtatTerritoirePersistant;
 import org.lieuofs.util.InfosONUetISO3166;
 
@@ -41,44 +35,71 @@ import org.lieuofs.util.InfosONUetISO3166;
  */
 public class ExtractionEtat {
 
-	
-	
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) throws IOException {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans_lieuofs.xml"});
+	private final EtatTerritoireDao dao;
+
+	public ExtractionEtat() {
+		dao = construireEtatTerritoireDao();
+	}
+
+
+	private EtatTerritoireDao construireEtatTerritoireDao() {
+		String nomFichier = "org/lieuofs/geo/territoire/biz/dao/eCH0072_140101.xml";
+		EtatTerritoireFichierXmlDao xmlDao = new EtatTerritoireFichierXmlDao(nomFichier);
+		return xmlDao;
+	}
+
+
+
+	private List<EtatTerritoirePersistant> obtenirEtat() {
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
 		critere.setEstEtat(Boolean.TRUE);
 		// critere.setValide(Boolean.TRUE);
-				
-		EtatTerritoireDao dao = (EtatTerritoireDao)context.getBean("etatTerritoireDao");
 		Set<EtatTerritoirePersistant> etats = dao.rechercher(critere);
-		
-		EtatWriter etatWriter = new CsvPlatEtatWriter();
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("Etat.txt"),"UTF-8"));
-		
 		List<EtatTerritoirePersistant> listeTriee = new ArrayList<EtatTerritoirePersistant>(etats);
 		Collections.sort(listeTriee, new Comparator<EtatTerritoirePersistant>() {
 
 			@Override
 			public int compare(EtatTerritoirePersistant o1,
-					EtatTerritoirePersistant o2) {
+							   EtatTerritoirePersistant o2) {
 				//return o1.getFormeCourte("fr").compareTo(o2.getFormeCourte("fr"));
 				return o1.getNumeroOFS() - o2.getNumeroOFS();
 			}
-			
+
 		});
-		
-		
-		for (EtatTerritoirePersistant etat : listeTriee) {
-			String etatStr = etatWriter.ecrireEtat(etat);
-			if (null != etatStr) {
-				writer.append(etatStr);
-			}
+		return listeTriee;
+	}
+
+
+	private void ecrire(String chaîne, Writer fluxSortantCaractere) {
+		try {
+			fluxSortantCaractere.append(chaîne);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
 		}
-		writer.close();
+	}
+
+	public void extraire(Writer fluxSortantCaratere) {
+		EtatWriter redacteur = new CsvPlatEtatWriter();
+		obtenirEtat().stream()
+				.map(redacteur::ecrireEtat)
+				.filter(String::isBlank)
+				.forEach(s -> ecrire(s,fluxSortantCaratere));
+
+	}
+	
+	/**
+	 * @param args
+	 */
+	static void main(String[] args) throws IOException {
+		ExtractionEtat extracteur = new ExtractionEtat();
+
+
+		try (OutputStream fluxSortantBinaire = new FileOutputStream("Etat.txt");
+			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,"UTF-8");
+			 Writer fluxSortantCaractereAvecTampon = new BufferedWriter(fluxSortantCaractere);
+		) {
+			extracteur.extraire(fluxSortantCaractereAvecTampon);
+		}
 	}
 
 	private static interface EtatWriter {
@@ -90,7 +111,7 @@ public class ExtractionEtat {
 		@Override
 		public String ecrireEtat(EtatTerritoirePersistant etat) {
 			String remarques = etat.getRemarque("fr");
-			if (StringUtils.hasText(remarques)) {
+			if (null != remarques && !remarques.isBlank()) {
 				StringBuilder builder = new StringBuilder();
 				builder.append("----------------------------------------------------------------\n");
 				builder.append("-- Ajout remarques pour ").append(etat.getFormeCourte("fr")).append("\n");

@@ -21,8 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import org.lieuofs.etat.IEtat;
 import org.lieuofs.etat.biz.IGestionEtat;
 import org.lieuofs.geo.territoire.ITerritoire;
@@ -40,28 +38,24 @@ public class GestionTerritoire implements IGestionTerritoire {
     /****************** Attributs *********************/
     /**************************************************/
 
-	private EtatTerritoireDao dao;
-	private IGestionEtat gestionnaireEtat;
+	private final EtatTerritoireDao dao;
+	private final IGestionEtat gestionnaireEtat;
 	private Map<Integer,Territoire> mapParId = new HashMap<Integer,Territoire>();
 	
     /**************************************************/
-    /********* Accesseurs / Mutateurs *****************/
-    /**************************************************/
+    /**************** Constructeurs *******************/
+	/**************************************************/
 
-	public void setDao(EtatTerritoireDao dao) {
+	public GestionTerritoire(EtatTerritoireDao dao, IGestionEtat gestionnaireEtat) {
 		this.dao = dao;
-	}
-
-	public void setGestionnaireEtat(IGestionEtat gestionnaireEtat) {
 		this.gestionnaireEtat = gestionnaireEtat;
+		populerCache();
 	}
 
-	
     /**************************************************/
     /********************* Méthodes *******************/
     /**************************************************/
 
-	@PostConstruct
 	private void populerCache() {
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
 		Set<EtatTerritoirePersistant> ensemble = dao.rechercher(critere);

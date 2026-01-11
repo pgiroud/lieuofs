@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,27 +15,28 @@
  */
 package org.lieuofs.canton.biz.dao;
 
+import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Resource;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.extractProperty;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.canton.CantonCritere;
 import org.lieuofs.canton.ICanton;
 
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.extractProperty;
+import static org.lieuofs.ContexteTest.INSTANCE;
+
 public class CantonOFSFichierTxtDaoTest {
 
-	@Resource(name = "cantonDao")
-	private CantonOFSFichierTxtDao dao;
-	
+	private CantonOFSDao dao;
+
+	@BeforeEach
+	public void construireContexte() {
+		dao = INSTANCE.construireDaoCanton();
+	}
+
 	@Test
 	public void lecture() {
 		// Fribourg a l'id 10

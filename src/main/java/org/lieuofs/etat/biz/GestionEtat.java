@@ -18,10 +18,6 @@ package org.lieuofs.etat.biz;
 
 import java.util.*;
 
-import javax.annotation.PostConstruct;
-
-import org.springframework.util.StringUtils;
-
 import org.lieuofs.etat.EtatCritere;
 import org.lieuofs.etat.IEtat;
 import org.lieuofs.geo.territoire.biz.EtatTerritoireCritere;
@@ -47,14 +43,11 @@ public class GestionEtat implements IGestionEtat {
     /********* Accesseurs / Mutateurs *****************/
     /**************************************************/
 
-	public void setDao(EtatTerritoireDao dao) {
-		this.dao = dao;
-	}
-
 	
-	
-	public GestionEtat() {
+	public GestionEtat(EtatTerritoireDao dao) {
 		super();
+		this.dao = dao;
+		populerCache();
 	}
 
     /**************************************************/
@@ -72,7 +65,6 @@ public class GestionEtat implements IGestionEtat {
 		mapParId.put(etat.getId(), etat);
 	}
 	
-	@PostConstruct
 	private void populerCache() {
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
 		critere.setEstEtat(Boolean.TRUE);
@@ -97,6 +89,10 @@ public class GestionEtat implements IGestionEtat {
         return  compare >= 0;
     }
 
+	private boolean vide(String texte) {
+		return null == texte || texte.trim().isEmpty();
+	}
+
 	private boolean accept(IEtat etat, EtatCritere critere) {
 		if (!filtreBooleen(critere.getValide(),etat.isValide())) return false;
 		if (!filtreBooleen(critere.getReconnuSuisse(),etat.isReconnuParLaSuisse())) return false;
@@ -106,12 +102,12 @@ public class GestionEtat implements IGestionEtat {
 		if (null != infosIsoCritere) {
 			CodesOnuIso infosIsoEtat = etat.getCodesOnuIso();
 			if (null == infosIsoEtat) return false;
-			if (StringUtils.hasText(infosIsoCritere.getCodeIsoAlpha2())) {
-				if (!StringUtils.hasText(infosIsoEtat.getCodeIsoAlpha2()) 
+			if (!vide(infosIsoCritere.getCodeIsoAlpha2())) {
+				if (vide(infosIsoEtat.getCodeIsoAlpha2())
 						|| !infosIsoEtat.getCodeIsoAlpha2().equalsIgnoreCase(infosIsoCritere.getCodeIsoAlpha2())) return false;
 			}
-			if (StringUtils.hasText(infosIsoCritere.getCodeIsoAlpha3())) {
-				if (!StringUtils.hasText(infosIsoEtat.getCodeIsoAlpha3()) 
+			if (!vide(infosIsoCritere.getCodeIsoAlpha3())) {
+				if (vide(infosIsoEtat.getCodeIsoAlpha3())
 						|| !infosIsoEtat.getCodeIsoAlpha3().equalsIgnoreCase(infosIsoCritere.getCodeIsoAlpha3())) return false;
 			}
 			if (0 < infosIsoCritere.getCodeNumeriqueONU()) {

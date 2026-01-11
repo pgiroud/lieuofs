@@ -16,77 +16,104 @@
 
 package org.lieuofs.extraction.etatpays;
 
-import java.io.BufferedWriter;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.*;
 
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import org.lieuofs.geo.territoire.biz.EtatTerritoireCritere;
 import org.lieuofs.geo.territoire.biz.dao.EtatTerritoireDao;
+import org.lieuofs.geo.territoire.biz.dao.EtatTerritoireFichierXmlDao;
 import org.lieuofs.geo.territoire.biz.dao.EtatTerritoirePersistant;
 
 /**
  * @author <a href="mailto:patrick.giroud@etat.ge.ch">Patrick Giroud</a>
  *
  */
-public class ExtractionPays {
+public final class ExtractionPays {
 
-	/**
-	 * @param args
-	 */
-	public static void main(String[] args) throws IOException {
-		ApplicationContext context = new ClassPathXmlApplicationContext(
-		        new String[] {"beans_lieuofs.xml"});
+	private final EtatTerritoireDao dao;
+
+	public ExtractionPays() {
+		dao = construireEtatTerritoireDao();
+	}
+
+	private EtatTerritoireDao construireEtatTerritoireDao() {
+		String nomFichier = "org/lieuofs/geo/territoire/biz/dao/eCH0072.xml";
+		EtatTerritoireFichierXmlDao xmlDao = new EtatTerritoireFichierXmlDao(nomFichier);
+		return xmlDao;
+	}
+
+	private EtatWriter construireRedacteur() {
+        return new NumOFSEtatWriter();
+	}
+
+	private List<EtatTerritoirePersistant> obtenirEtatTerritoire() {
 		EtatTerritoireCritere critere = new EtatTerritoireCritere();
 		//critere.setEstEtat(Boolean.FALSE);
-				
-		EtatTerritoireDao dao = (EtatTerritoireDao)context.getBean("etatTerritoireDao");
 		Set<EtatTerritoirePersistant> etats = dao.rechercher(critere);
-		
-		EtatWriter etatWriter = new NumOFSEtatWriter();
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("ExtractionPaysOFSReconnuRecemment.txt"),"UTF-8"));
-		
 		List<EtatTerritoirePersistant> listeTriee = new ArrayList<EtatTerritoirePersistant>(etats);
 		Collections.sort(listeTriee, new Comparator<EtatTerritoirePersistant>() {
 
 			@Override
 			public int compare(EtatTerritoirePersistant o1,
-					EtatTerritoirePersistant o2) {
+							   EtatTerritoirePersistant o2) {
 				//return o1.getFormeCourte("fr").compareTo(o2.getFormeCourte("fr"));
 				return o1.getNumeroOFS() - o2.getNumeroOFS();
 			}
-			
+
 		});
-		
-		
-		for (EtatTerritoirePersistant etat : filtre(listeTriee)) {
-			String etatStr = etatWriter.ecrireEtat(etat);
-			if (null != etatStr) {
-				writer.append(etatStr);
-			}
-		}
-		writer.close();
+		return filtre(listeTriee);
 	}
 
-    private static List<EtatTerritoirePersistant> filtre(List<EtatTerritoirePersistant> listeOriginal) {
-        List<EtatTerritoirePersistant> listeFiltree = new ArrayList<EtatTerritoirePersistant>(); 
-        for (EtatTerritoirePersistant etatTerritoire : listeOriginal) {
-            // On sélectionne tous les états territoire reconnu il ya moins de 2 ans
-            Calendar cal = Calendar.getInstance();
-            cal.roll(Calendar.YEAR,-5);
-            Date ilYa5an = cal.getTime();
-            Date dateReconnaissance = etatTerritoire.getDateReconnaissance();
-            if (null != dateReconnaissance
-                    && dateReconnaissance.compareTo(ilYa5an) > 0) {
-                listeFiltree.add(etatTerritoire);
-            }
-        }
-        return listeFiltree;
-    }
+	private List<EtatTerritoirePersistant> filtre(List<EtatTerritoirePersistant> listeOriginal) {
+		List<EtatTerritoirePersistant> listeFiltree = new ArrayList<EtatTerritoirePersistant>();
+		for (EtatTerritoirePersistant etatTerritoire : listeOriginal) {
+			// On sélectionne tous les états territoire reconnu il ya moins de 2 ans
+			Calendar cal = Calendar.getInstance();
+			cal.roll(Calendar.YEAR,-5);
+			Date ilYa5an = cal.getTime();
+			Date dateReconnaissance = etatTerritoire.getDateReconnaissance();
+			if (null != dateReconnaissance
+					&& dateReconnaissance.compareTo(ilYa5an) > 0) {
+				listeFiltree.add(etatTerritoire);
+			}
+		}
+		return listeFiltree;
+	}
+
+	private void ecrire(String chaîne, Writer fluxSortantCaractere) {
+		try {
+			fluxSortantCaractere.append(chaîne);
+		} catch (IOException ioe) {
+			throw new RuntimeException(ioe);
+		}
+	}
+
+	public void extraire(Writer fluxSortantCaratere) {
+		EtatWriter redacteur = new NumOFSEtatWriter();
+		obtenirEtatTerritoire().stream()
+				.map(redacteur::ecrireEtat)
+				.filter(String::isBlank)
+				.forEach(s -> ecrire(s,fluxSortantCaratere));
+
+	}
+
+
+	/**
+	 * @param args
+	 */
+	static void main(String[] args) throws IOException {
+		ExtractionPays extracteur = new ExtractionPays();
+
+		try (OutputStream fluxSortantBinaire = new FileOutputStream("ExtractionPaysOFSReconnuRecemment.txt");
+			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,"UTF-8");
+			 Writer fluxSortantCaractereAvecTampon = new BufferedWriter(fluxSortantCaractere);
+		) {
+			extracteur.extraire(fluxSortantCaractereAvecTampon);
+		}
+	}
+
+
     
     
 	private static interface EtatWriter {

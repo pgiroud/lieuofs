@@ -2,29 +2,24 @@ package org.lieuofs.etat.biz;
 
 import java.util.*;
 
-import javax.annotation.Resource;
 
-import org.fest.assertions.api.IterableAssert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Assertions.extractProperty;
-import static org.junit.Assert.*;
-
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.lieuofs.etat.EtatCritere;
 import org.lieuofs.etat.IEtat;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.extractProperty;
+import static org.lieuofs.ContexteTest.INSTANCE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
 public class GestionEtatTest {
 
-	@Resource(name = "gestionEtat")
 	private IGestionEtat gestionnaire;
+
+	@BeforeEach
+	public void contexte() {
+		gestionnaire = INSTANCE.construireGestionEtat();
+	}
 
 	@Test
 	public void tousLesEtats() {
@@ -36,7 +31,7 @@ public class GestionEtatTest {
 			descriptions.add(description);
 		}
 		Collections.sort(descriptions);
-		assertTrue("Nombre etats < 200",200 > taille);
+		assertThat(200 > taille).isTrue();
 	}
 	
 	@Test
@@ -44,8 +39,9 @@ public class GestionEtatTest {
 		EtatCritere critere = new EtatCritere();
 		critere.setMembreONU(Boolean.FALSE);
 		Set<IEtat> etats = gestionnaire.rechercher(critere);
-		int taille = etats.size();
-		assertTrue("Nombre etats = 5 (Palestine, Vatican, Kosovo, Taïwan, Sahara Occidental)", 5 == taille);
+		// Nombre etats = 6 (Palestine, Vatican, Kosovo, Taïwan, Sahara Occidental, Îles Cook)
+		assertThat(etats).hasSize(6);
+
 	}
 	
 	@Test
@@ -53,8 +49,8 @@ public class GestionEtatTest {
 		EtatCritere critere = new EtatCritere();
 		critere.setReconnuSuisse(Boolean.FALSE);
 		Set<IEtat> etats = gestionnaire.rechercher(critere);
-		int taille = etats.size();
-		assertTrue("Nombre etats = 4 (Suisse, Palestine, Taïwan, Sahara occidental)", 4 == taille);
+		// Nombre etats = 4 (Suisse, Palestine, Taïwan, Sahara occidental)
+		assertThat(etats).hasSize(4);
 	}
 	
 	@Test
@@ -63,7 +59,9 @@ public class GestionEtatTest {
 		critere.setReconnuSuisse(Boolean.TRUE);
 		critere.setMembreONU(Boolean.FALSE);
 		Set<IEtat> etats = gestionnaire.rechercher(critere);
-		assertEquals("2 états non membres de l'ONU reconnu par la Suisse : le Vatican et le Kosovo", 2, etats.size());
+		// 3 états non membres de l'ONU reconnu par la Suisse : le Vatican, le Kosovo, Îles Cook
+		assertThat(etats).hasSize(3);
+
 	}
 	
 	@Test
@@ -72,8 +70,9 @@ public class GestionEtatTest {
 		critere.setValideEtInvalide();
 		critere.setCodeIsoAlpha2("fr");
 		Set<IEtat> etats = gestionnaire.rechercher(critere);
-		assertEquals("1 état : la France", 1, etats.size());
-		assertEquals("Nom", "France", etats.iterator().next().getFormeCourte("fr"));
+		// 1 état : la France
+		assertThat(etats).hasSize(1);
+		assertThat(etats.iterator().next().getFormeCourte("fr")).isEqualTo("France");
 	}
 	
 	@Test
@@ -87,7 +86,7 @@ public class GestionEtatTest {
 			descriptions.add(description);
 		}
 		Collections.sort(descriptions);
-		assertTrue("Nbre états reconnus", 193 <= etats.size());
+		assertThat(193 <= etats.size()).isTrue();
 	}
 
     @Test

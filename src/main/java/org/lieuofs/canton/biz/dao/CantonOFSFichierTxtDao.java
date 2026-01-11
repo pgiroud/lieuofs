@@ -22,8 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.util.StringUtils;
-
 import org.lieuofs.canton.CantonCritere;
 import org.lieuofs.canton.ICanton;
 import org.lieuofs.canton.biz.Canton;
@@ -46,11 +44,12 @@ public class CantonOFSFichierTxtDao extends FichierOFSTxtDao implements CantonOF
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public CantonOFSFichierTxtDao() {
-		super();
+	public CantonOFSFichierTxtDao(String fichierAvecCheminComplet) {
+		super(fichierAvecCheminComplet);
+		chargerResource();
 	}
-	
-    /**************************************************/
+
+/**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/
 
@@ -86,17 +85,17 @@ public class CantonOFSFichierTxtDao extends FichierOFSTxtDao implements CantonOF
 		if (null != critere.getCodeISO2()) {
 			return Collections.<ICanton>singletonList(mapParCodeIso.get(critere.getCodeISO2().toUpperCase()));
 		}
-		if (StringUtils.hasText(critere.getNom())) {
-			String critereNom = critere.getNom().trim();
+		String nomCritere = critere.getNom().trim();
+		if (!nomCritere.isEmpty()) {
 			List<ICanton> liste = new ArrayList<ICanton>();
 			for (Canton canton : mapParId.values()) {
-				int longueurChaine = critereNom.length();
+				int longueurChaine = nomCritere.length();
 				String[] nomCantons = canton.getNom().split("/");
 				boolean nonTrouve = true;
 				for (String nomCanton : nomCantons) {
 					String nomCantonTrim = nomCanton.trim();
 					if (nonTrouve && nomCantonTrim.length() >= longueurChaine) {
-						if (critereNom.toUpperCase().equals(nomCantonTrim.substring(0,longueurChaine).toUpperCase())) {
+						if (nomCritere.equalsIgnoreCase(nomCantonTrim.substring(0,longueurChaine))) {
 							liste.add(canton);
 							nonTrouve = false;
 						}

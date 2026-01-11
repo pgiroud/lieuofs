@@ -17,22 +17,21 @@ package org.lieuofs.util.dao;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import javax.annotation.PostConstruct;
 
 import org.lieuofs.Mutable;
 import org.lieuofs.TypeMutation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.dao.TypeMismatchDataAccessException;
-import org.springframework.util.StringUtils;
+
 
 
 /**
@@ -46,33 +45,28 @@ public abstract class FichierOFSTxtDao {
     /**************************************************/
 
 	final Logger logger = LoggerFactory.getLogger(FichierOFSTxtDao.class);
-	private Resource fichier;
-	private String charsetName;
+	private final String fichierDansClasspathAvecCheminComplet;
+	private final String charsetName;
 	private DateFormat dateFmt;
 
     /**************************************************/
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public FichierOFSTxtDao() {
+	public FichierOFSTxtDao(String fichierAvecCheminComplet, String charset) {
 		super();
+		this.fichierDansClasspathAvecCheminComplet = fichierAvecCheminComplet;
+		this.charsetName = charset;
 		dateFmt = new SimpleDateFormat("dd.MM.yyyy");
 		dateFmt.setTimeZone(TimeZone.getTimeZone("Europe/Zurich"));
 	}
-	
-	/**************************************************/
-    /******* Accesseurs / Mutateurs *******************/
-    /**************************************************/
-	
-	public void setFichier(Resource fichier) {
-		this.fichier = fichier;
+
+	public FichierOFSTxtDao(String fichierAvecCheminComplet) {
+		this(fichierAvecCheminComplet,"ISO-8859-1");
 	}
-	
-	public void setCharsetName(String charsetName) {
-		this.charsetName = charsetName;
-	}
-	
-    /**
+
+
+	/**
 	 * @return the dateFmt
 	 */
 	protected DateFormat getDateFmt() {
@@ -83,29 +77,72 @@ public abstract class FichierOFSTxtDao {
     /******************* Méthodes *********************/
     /**************************************************/
 
-	protected abstract void traiterLigneFichier(String... tokens) throws ParseException;
-	
-	@PostConstruct
-	public void chargerResource() throws IOException {
-		BufferedReader reader = new BufferedReader(new InputStreamReader(fichier.getInputStream(),charsetName));
-		int numLigne = 1;
-		String ligne = reader.readLine(); 
-		while (null != ligne) {
-			try {
-				traiterLigneFichier(ligne.split("\t"));
-			} catch (ParseException pe) {
-				throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne,pe);
-			} catch (NumberFormatException nfe) {
-				throw new TypeMismatchDataAccessException("Erreur de lecture dans la ressource " + fichier.getFilename() + " à la ligne " + numLigne,nfe);
-			}
-			ligne = reader.readLine();
-			numLigne++;
+	private ClassLoader getClassLoader() {
+		ClassLoader cl = null;
+		try {
+			cl = Thread.currentThread().getContextClassLoader();
 		}
-		reader.close();
+		catch (Throwable ex) {}
+		if (cl == null) {
+			cl = FichierOFSTxtDao.class.getClassLoader();
+			if (cl == null) {
+				try {
+					cl = ClassLoader.getSystemClassLoader();
+				}
+				catch (Throwable ex) {
+				}
+			}
+		}
+		return cl;
 	}
-	
+
+	boolean exist() {
+		try {
+			ClassLoader cl = getClassLoader();
+			InputStream is = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+			return null != is && new BufferedReader(new InputStreamReader(is,charsetName)).ready();
+		} catch (IOException ioe) {
+			logger.debug("Pas de lecture possible dans 'classpath:" + fichierDansClasspathAvecCheminComplet + "'",ioe);
+		}
+		return false;
+	}
+
+	private InputStream getInputStream() {
+		ClassLoader cl = getClassLoader();
+		URL resource = cl.getResource(fichierDansClasspathAvecCheminComplet);
+		InputStream stream = (cl != null ? cl.getResourceAsStream(fichierDansClasspathAvecCheminComplet) : ClassLoader.getSystemResourceAsStream(fichierDansClasspathAvecCheminComplet));
+		return stream;
+	}
+
+	protected abstract void traiterLigneFichier(String... tokens) throws ParseException;
+
+	protected void chargerResource() {
+		try (InputStream flux = getInputStream();
+			 InputStreamReader lecteurFlux = new InputStreamReader(flux,charsetName);
+			 BufferedReader lecteurAvecTampon = new BufferedReader(lecteurFlux)) {
+			int numLigne = 1;
+			String ligne = lecteurAvecTampon.readLine();
+			while (null != ligne) {
+				try {
+					traiterLigneFichier(ligne.split("\t"));
+				} catch (ParseException | NumberFormatException pe) {
+					throw new  RuntimeException("Erreur de lecture dans la ressource " + fichierDansClasspathAvecCheminComplet + " à la ligne " + numLigne,pe);
+				}
+                ligne = lecteurAvecTampon.readLine();
+				numLigne++;
+			}
+		} catch (Exception e) {
+			logger.error("Lecture du fichier " + fichierDansClasspathAvecCheminComplet + " ");
+		}
+		;
+	}
+
+	private boolean vide(String texte) {
+		return null == texte || texte.isBlank();
+	}
+
 	protected Mutable creerMutation(String numero, String typeMutation, String date, boolean radiation) throws ParseException {
-		if (!StringUtils.hasText(numero) || !StringUtils.hasText(typeMutation) || !StringUtils.hasText(date)) return null;
+		if (vide(numero) || vide(typeMutation) || vide(date)) return null;
 		Integer num = Integer.decode(numero);
 		TypeMutation type = TypeMutation.getParId(Long.decode(typeMutation));
 		Date dtSuisse = getDateFmt().parse(date);

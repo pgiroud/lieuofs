@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,13 +15,14 @@
  */
 package org.lieuofs.util.dao;
 
+import org.junit.jupiter.api.Test;
+
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.junit.Assert.*;
 
 public class DateUtilTest {
 
@@ -29,18 +30,18 @@ public class DateUtilTest {
 		cal.set(annee, mois, jour);
 		Date date = DateUtil.premierMillisecondeDeLaJournee(cal.getTime());
 		cal.setTime(date);
-		assertEquals("annee",annee,cal.get(Calendar.YEAR));
-		assertEquals("mois",mois,cal.get(Calendar.MONTH));
-		assertEquals("jour",jour,cal.get(Calendar.DATE));
-		assertEquals("heure",0,cal.get(Calendar.HOUR_OF_DAY));
-		assertEquals("minute",0,cal.get(Calendar.MINUTE));
-		assertEquals("seconde",0,cal.get(Calendar.SECOND));
-		assertEquals("milliseconde",0,cal.get(Calendar.MILLISECOND));
+		assertThat(cal.get(Calendar.YEAR)).isEqualTo(annee);
+		assertThat(cal.get(Calendar.MONTH)).isEqualTo(mois);
+		assertThat(cal.get(Calendar.DATE)).isEqualTo(jour);
+		assertThat(cal.get(Calendar.HOUR_OF_DAY)).isEqualTo(0);
+		assertThat(cal.get(Calendar.MINUTE)).isEqualTo(0);
+		assertThat(cal.get(Calendar.SECOND)).isEqualTo(0);
+		assertThat(cal.get(Calendar.MILLISECOND)).isEqualTo(0);
 	}
 	
 	@Test
 	public void premierMillisecondeDeLaJournee() {
-		Calendar cal = Calendar.getInstance(new Locale("fr","CH"));
+		Calendar cal = Calendar.getInstance(Locale.of("fr","CH"));
 		premierMillisecondeDeLaJournee(cal,25,Calendar.JANUARY,1971);
 		premierMillisecondeDeLaJournee(cal,1,Calendar.JANUARY,2008);
 	}
@@ -50,18 +51,19 @@ public class DateUtilTest {
 		cal.set(annee, mois, jour);
 		Date date = DateUtil.derniereMillisecondeDeLaJournee(cal.getTime());
 		cal.setTime(date);
-		assertEquals("annee",annee,cal.get(Calendar.YEAR));
-		assertEquals("mois",mois,cal.get(Calendar.MONTH));
-		assertEquals("jour",jour,cal.get(Calendar.DATE));
-		assertTrue("heure",23 <= cal.get(Calendar.HOUR_OF_DAY));
-		assertTrue("minute",59 <= cal.get(Calendar.MINUTE));
-		assertTrue("seconde", 59 <= cal.get(Calendar.SECOND));
-		assertTrue("milliseconde",999 <= cal.get(Calendar.MILLISECOND));
+		assertThat(cal.get(Calendar.YEAR)).isEqualTo(annee);
+		assertThat(cal.get(Calendar.MONTH)).isEqualTo(mois);
+		assertThat(cal.get(Calendar.DATE)).isEqualTo(jour);
+		assertThat(23 <= cal.get(Calendar.HOUR_OF_DAY)).isTrue();
+
+		assertThat(59 <= cal.get(Calendar.MINUTE)).isTrue();
+		assertThat(59 <= cal.get(Calendar.SECOND)).isTrue();
+		assertThat(999 <= cal.get(Calendar.MILLISECOND)).isTrue();
 	}
 	
 	@Test
 	public void derniereMillisecondeDeLaJournee() {
-		Calendar cal = Calendar.getInstance(new Locale("fr","CH"));
+		Calendar cal = Calendar.getInstance(Locale.of("fr","CH"));
 		derniereMillisecondeDeLaJournee(cal,25,Calendar.JANUARY,1971);
 		// la dernière minute du 31 décembre 2005 contenait 61 secondes
 		derniereMillisecondeDeLaJournee(cal,31,Calendar.DECEMBER,2005);

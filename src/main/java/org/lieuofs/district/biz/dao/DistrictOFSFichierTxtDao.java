@@ -41,10 +41,11 @@ public class DistrictOFSFichierTxtDao extends FichierOFSTxtDao implements Distri
     /**************** Constructeurs *******************/
     /**************************************************/
 
-	public DistrictOFSFichierTxtDao() {
-		super();
+	public DistrictOFSFichierTxtDao(String fichierAvecCheminComplet) {
+		super(fichierAvecCheminComplet);
+		chargerResource();
 	}
-	
+
 	/**************************************************/
     /******************* Méthodes *********************/
     /**************************************************/

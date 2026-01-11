@@ -1,4 +1,4 @@
-/**
+/*
  * This file is part of LieuOFS.
  *
  * LieuOFS is free software: you can redistribute it and/or modify
@@ -15,98 +15,182 @@
  */
 package org.lieuofs.geo.territoire.biz.dao;
 
-import java.util.Calendar;
-
-import javax.annotation.Resource;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestFactory;
 import org.lieuofs.util.InfosONUetISO3166;
 
+import java.util.Calendar;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.lieuofs.ContexteTest.INSTANCE;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = "/beans_lieuofs.xml")
 public class EtatTerritoireFichierXmlDaoTest {
 
-	@Resource(name = "etatTerritoireDao")
+
 	private EtatTerritoireDao dao;
-	
+
+	@BeforeEach
+	public void contexte() {
+		dao = INSTANCE.construireDaoEtatTerritoire();
+	}
+
+
 	@Test
-	public void lireSuisse() {
+	public void infosISOSuisse() {
 		EtatTerritoirePersistant suisse = dao.lire(8100);
-		assertEquals("N° OFS Suisse",8100,suisse.getNumeroOFS());
+		assertThat(suisse.isMembreONU()).isTrue();
 		InfosONUetISO3166 infos = suisse.getInfosISO();
-		assertNotNull("Infos Onu Iso non nulles",infos);
-		assertEquals("Info Onu numérique",756,infos.getCodeNumeriqueONU());
-		assertEquals("Info ISO alpha 2","CH",infos.getCodeIsoAlpha2());
-		assertEquals("Info ISO alpha 3","CHE",infos.getCodeIsoAlpha3());
-		assertEquals("Forme courte allemande","Schweiz",suisse.getFormeCourte("de"));
-		assertEquals("Forme courte française","Suisse",suisse.getFormeCourte("fr"));
-		assertEquals("Forme courte italienne","Svizzera",suisse.getFormeCourte("it"));
-		assertEquals("Forme courte anglaise","Switzerland",suisse.getFormeCourte("en"));
-		assertEquals("Désignation allemande","Schweizerische Eidgenossenschaft",suisse.getDesignationOfficielle("de"));
-		assertEquals("Désignation française","Confédération suisse",suisse.getDesignationOfficielle("fr"));
-		assertEquals("Désignation italienne","Confederazione svizzera",suisse.getDesignationOfficielle("it"));
-		assertEquals("Continent",1,suisse.getNumContinent());
-		assertEquals("Région",3,suisse.getNumRegion());
-		assertTrue("Est un état",suisse.isEtat());
-		assertEquals("La Suisse est un état : pas de rattachement",0,suisse.getNumEtatRattachement());
-		assertTrue("Est membre de l'ONU",suisse.isMembreONU());
+		assertThat(infos).isNotNull();
+		assertThat(infos.getCodeNumeriqueONU()).isEqualTo(756);
+		assertThat(infos.getCodeIsoAlpha2()).isEqualTo("CH");
+		assertThat(infos.getCodeIsoAlpha3()).isEqualTo("CHE");
+
+
+	}
+
+	@Test
+	public void entreeSuisseOnu() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.isMembreONU()).isTrue();
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(suisse.getDateEntreeONU());
-		assertEquals("Jour entrée ONU",10,cal.get(Calendar.DATE));
-		assertEquals("mois entrée ONU",Calendar.SEPTEMBER,cal.get(Calendar.MONTH));
-		assertEquals("année entrée ONU",2002,cal.get(Calendar.YEAR));
-		assertFalse("Non reconnu par la Suisse",suisse.isReconnuSuisse());
-		assertNull("Date reconnaissance Suisse",suisse.getDateReconnaissance());
-		assertNull("Remarque en allemand",suisse.getRemarque("de"));
-		assertNull("Remarque en français",suisse.getRemarque("fr"));
-		assertNull("Remarque en italien",suisse.getRemarque("it"));
-		assertTrue("valide",suisse.isValide());
-		cal.setTime(suisse.getDateDernierChangement());
-		assertEquals("Jour dernier changement",1,cal.get(Calendar.DATE));
-		assertEquals("mois dernier changement",Calendar.JANUARY,cal.get(Calendar.MONTH));
-		assertEquals("année dernier changement",2008,cal.get(Calendar.YEAR));
+		assertThat(cal.get(Calendar.DATE)).isEqualTo(10);
+		assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.SEPTEMBER);
+		assertThat(cal.get(Calendar.YEAR)).isEqualTo(2002);
 	}
-	
+
 	@Test
-	public void lireBerlinOuest() {
+	public void positionnementGeographiqueSuisse() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.getNumContinent()).isEqualTo(1);
+		assertThat(suisse.getNumRegion()).isEqualTo(3);
+	}
+
+	@Test
+	public void designationCourteDeLaSuisse() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.getFormeCourte("de")).as("Forme courte allemande").isEqualTo("Schweiz");
+		assertThat(suisse.getFormeCourte("fr")).as("Forme courte française").isEqualTo("Suisse");
+		assertThat(suisse.getFormeCourte("it")).as("Forme courte italienne").isEqualTo("Svizzera");
+		assertThat(suisse.getFormeCourte("en")).as("Forme courte anglaise").isEqualTo("Switzerland");
+	}
+
+	@Test
+	public void designationOfficielleDeLaSuisse() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.getDesignationOfficielle("de")).as("Désignation allemande")
+				.isEqualTo("Schweizerische Eidgenossenschaft");
+		assertThat(suisse.getDesignationOfficielle("fr")).as("Désignation française")
+				.isEqualTo("Confédération suisse");
+		assertThat(suisse.getDesignationOfficielle("it")).as("Désignation italienne")
+				.isEqualTo("Confederazione svizzera");
+	}
+
+	@Test
+	public void laSuisseNestPasReconnueParElleMeme() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.isReconnuSuisse()).isFalse();
+		assertThat(suisse.getDateReconnaissance()).isNull();
+	}
+
+	@Test
+	public void pasDeRemarquesPourLaSuisse() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.getRemarque("de")).isNull();
+		assertThat(suisse.getRemarque("fr")).isNull();
+		assertThat(suisse.getRemarque("it")).isNull();
+	}
+
+	@Test
+	public void dernierChangementpourLaSuisse() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(suisse.getDateDernierChangement());
+		assertThat(cal.get(Calendar.DATE)).isEqualTo(1);
+		assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.JANUARY);
+		assertThat(cal.get(Calendar.YEAR)).isEqualTo(2008);
+	}
+
+	@Test
+	public void suissePresente() {
+		EtatTerritoirePersistant suisse = dao.lire(8100);
+		assertThat(suisse.getNumeroOFS()).isEqualTo(8100);
+		assertThat(suisse.isEtat()).isTrue();
+		assertThat(suisse.getNumEtatRattachement()).isEqualTo(0);
+		assertThat(suisse.isValide()).isTrue();
+
+	}
+
+	@Test
+	public void berlinOuestPresente() {
 		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
-		assertEquals("N° OFS Suisse",8209,berlinOuest.getNumeroOFS());
+		assertThat(berlinOuest.getNumeroOFS()).isEqualTo(8209);
+		assertThat(berlinOuest.isEtat()).isFalse();
+	}
+
+	@Test
+	public void berlinOuestNestPasUnEtat() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		// "Berlin ouest est rattaché à l'Allemagne"
+		assertThat(berlinOuest.getNumEtatRattachement()).isEqualTo(8207);
+	}
+
+	@Test
+	public void berlinOuestNestPasReconnuONU() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
 		InfosONUetISO3166 infos = berlinOuest.getInfosISO();
-		assertNull("Infos Onu Iso non nulles",infos);
-		assertEquals("Forme courte allemande","Westberlin",berlinOuest.getFormeCourte("de"));
-		assertEquals("Forme courte française","Berlin ouest",berlinOuest.getFormeCourte("fr"));
-		assertEquals("Forme courte italienne","Berlino Ovest",berlinOuest.getFormeCourte("it"));
-		assertEquals("Forme courte anglaise","West Berlin",berlinOuest.getFormeCourte("en"));
-		assertNull("Désignation allemande",berlinOuest.getDesignationOfficielle("de"));
-		assertNull("Désignation française",berlinOuest.getDesignationOfficielle("fr"));
-		assertNull("Désignation italienne",berlinOuest.getDesignationOfficielle("it"));
-		assertEquals("Continent",1,berlinOuest.getNumContinent());
-		assertEquals("Région",3,berlinOuest.getNumRegion());
-		assertFalse("Est un état",berlinOuest.isEtat());
-		assertEquals("Berlin ouest est rattaché à l'Allemagne",8207,berlinOuest.getNumEtatRattachement());
-		assertFalse("Est membre de l'ONU",berlinOuest.isMembreONU());
-		assertNull("Pas de date d'entrée car pas membre",berlinOuest.getDateEntreeONU());
-		assertFalse("Pas reconnu par la Suisse",berlinOuest.isReconnuSuisse());
-		assertNull("Date reconnaissance Suisse",berlinOuest.getDateReconnaissance());
-		assertNotNull("Remarque en allemand",berlinOuest.getRemarque("de"));
-		assertNotNull("Remarque en français",berlinOuest.getRemarque("fr"));
-		assertNotNull("Remarque en italien",berlinOuest.getRemarque("it"));
-		assertFalse("valide",berlinOuest.isValide());
+		assertThat(infos).isNull();
+		assertThat(berlinOuest.isMembreONU()).isFalse();
+		assertThat(berlinOuest.getDateEntreeONU()).isNull();
+	}
+
+	@Test
+	public void berlinOuestNestPasReconnuActuellementParLaSuisse() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.isReconnuSuisse()).isFalse();
+		assertThat(berlinOuest.getDateReconnaissance()).isNull();
+	}
+
+	@Test
+	public void berlinOuestNaPlusDeRaisonDexisterSuiteChuteDuMur() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.isValide()).isFalse();
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(berlinOuest.getDateDernierChangement());
-		assertEquals("Jour dernier changement",5,cal.get(Calendar.DATE));
-		assertEquals("mois dernier changement",Calendar.MARCH,cal.get(Calendar.MONTH));
-		assertEquals("année dernier changement",2008,cal.get(Calendar.YEAR));
+		assertThat(cal.get(Calendar.DATE)).isEqualTo(5);
+		assertThat(cal.get(Calendar.MONTH)).isEqualTo(Calendar.MARCH);
+		assertThat(cal.get(Calendar.YEAR)).isEqualTo(2008);
+	}
+
+	@Test
+	public void designationCourteBerlinOuest() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.getFormeCourte("de")).as("Forme courte allemande").isEqualTo("Westberlin");
+		assertThat(berlinOuest.getFormeCourte("fr")).as("Forme courte française").isEqualTo("Berlin ouest");
+		assertThat(berlinOuest.getFormeCourte("it")).as("Forme courte italienne").isEqualTo("Berlino Ovest");
+		assertThat(berlinOuest.getFormeCourte("en")).as("Forme courte anglaise").isEqualTo("West Berlin");
+	}
+
+	@Test
+	public void plusDeDesignationOfficielleBerlinOuest() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.getDesignationOfficielle("de")).as("Désignation allemande").isNull();
+		assertThat(berlinOuest.getDesignationOfficielle("fr")).as("Désignation française").isNull();
+		assertThat(berlinOuest.getDesignationOfficielle("it")).as("Désignation italienne").isNull();
+	}
+
+	@Test
+	public void existenceDeRemarquesPourBerlinOuest() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.getRemarque("de")).as("Remarque en allemand").isNotNull();
+		assertThat(berlinOuest.getRemarque("fr")).as("Remarque en français").isNotNull();
+		assertThat(berlinOuest.getRemarque("it")).as("Remarque en italien").isNotNull();
+	}
+
+	@Test
+	public void positionnementGeographiqueBerlinOuest() {
+		EtatTerritoirePersistant berlinOuest = dao.lire(8209);
+		assertThat(berlinOuest.getNumContinent()).isEqualTo(1);
+		assertThat(berlinOuest.getNumRegion()).isEqualTo(3);
 	}
 }

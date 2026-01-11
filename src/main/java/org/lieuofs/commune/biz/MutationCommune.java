@@ -184,16 +184,24 @@ public class MutationCommune implements IMutationCommune {
 			builder.append(dtFormat.format(this.dateEffet));
 			return  builder.toString();
 		case CHANGEMENT_DISTRICT:
-			communeOrigine = communesOrigines.get(0);
-			communeCible = communesCibles.get(0);
+			communeOrigine = communesOrigines.getFirst();
+			communeCible = communesCibles.getFirst();
 			builder = new StringBuilder("Changement de district ");
 			builder.append(getDesc(communesOrigines));
-			builder.append(" du district ");
-			builder.append(communeOrigine.getDistrict().getNom());
+			if (null == communeOrigine.getDistrict()) {
+				builder.append(" de 'pas de district'");
+			} else {
+				builder.append(" du district ");
+				builder.append(communeOrigine.getDistrict().getNom());
+			}
 			builder.append(" --> ");
 			builder.append(getDesc(communesCibles));
-			builder.append(" du district ");
-			builder.append(communeCible.getDistrict().getNom());
+			if (null == communeCible.getDistrict()) {
+				builder.append(" vers 'pas de district'");
+			} else {
+				builder.append(" vers le district ");
+				builder.append(communeCible.getDistrict().getNom());
+			}
 			builder.append(" le ");
 			builder.append(dtFormat.format(this.dateEffet));
 			return  builder.toString();
