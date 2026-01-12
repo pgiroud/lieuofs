@@ -61,7 +61,8 @@ public class MutCommuneFreemarkerRefonteSQLWriter implements
 		flux.put("description", description.replaceAll("'", "''"));
 		flux.put("date", fmtDtd.format(date));
 		flux.put("noofs", String.valueOf(noOFS));
-		builder.append(compose(configFreemarker.getTemplate("evtModification.ftl"), flux));
+		Template modele = configFreemarker.getTemplate("evtModification.ftl");
+		builder.append(compose(modele, flux));
 	}
 
 	private void ecrireEvtCreationCommune(StringBuilder builder, Date date) throws IOException, TemplateException {
@@ -121,6 +122,23 @@ public class MutCommuneFreemarkerRefonteSQLWriter implements
 		ecrireEvtCreationCommune(builder, cal.getTime());
 		return builder.toString();
 	}
+
+	private String ecrireChangementCanton(IMutationCommune mutation) throws IOException, TemplateException  {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(mutation.getDateEffet());
+		StringBuilder builder = new StringBuilder();
+		builder.append(getBandeau(mutation.getDescription()));
+		cal.add(Calendar.DATE, -1);
+		ICommuneSuisse ancienneCommuneInvalidee = mutation.getCommunesOrigines().getFirst();
+		desactiverCommune(builder,cal.getTime(),ancienneCommuneInvalidee,mutation);
+		cal.setTime(mutation.getDateEffet());
+		ICommuneSuisse communeCree = mutation.getCommunesCibles().getFirst();
+		ecrireLieuFiscalCree(builder,communeCree,cal.getTime(),mutation.getDescription());
+		ecrireCommuneCree(builder,communeCree);
+		ecrireEvtCreationCommune(builder,cal.getTime());
+		return builder.toString();
+	}
+
 
 	private void ecrireAbsorption(StringBuilder builder, Date date, int noOFS, List<ICommuneSuisse> communeAbsorbee) throws IOException, TemplateException {
 		StringBuilder description = new StringBuilder("Absorption ");
@@ -192,6 +210,7 @@ public class MutCommuneFreemarkerRefonteSQLWriter implements
 				case CHANGEMENT_NOM -> ecrireChgtNom(mutation);
 				case CHANGEMENT_DISTRICT -> null;
 				case ECHANGE_TERRITOIRE -> null;
+				case CHANGEMENT_CANTON -> ecrireChangementCanton((mutation));
 				default -> null;
 			};
 		} catch (TemplateException | IOException ex) {

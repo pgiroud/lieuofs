@@ -90,8 +90,8 @@ public class ExtracteurMutation {
 	static void main(String[] args) throws IOException {
 		Calendar cal = Calendar.getInstance();
 		cal.set(2025, Calendar.JANUARY,2);
-		sortie(cal,new MutCommuneFreemarkerRefonteSQLWriter("Script 2603"),"MutationCommune2025.sql");
-		sortie(cal,new DescriptionTexteWriter(),"MutationCommune2025.txt");
+		sortie(cal,new MutCommuneFreemarkerRefonteSQLWriter("Script 2603"),"MutationCommune2026.sql");
+		sortie(cal,new DescriptionTexteWriter(),"MutationCommune2026.txt");
 	}
 	
 	

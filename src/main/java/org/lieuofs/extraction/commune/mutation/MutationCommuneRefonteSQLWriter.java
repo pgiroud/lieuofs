@@ -123,7 +123,22 @@ class MutationCommuneRefonteSQLWriter implements MutationCommuneWriter {
 		ecrireEvtDesactivation(builder,date,commune.getNumeroOFS());
 		ecrireDesactivationLieuFiscal(builder,date,commune.getNumeroOFS(),mutation.getDescription());
 	}
-	
+
+	private String ecrireChangementCanton(IMutationCommune mutation) {
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(mutation.getDateEffet());
+		StringBuilder builder = new StringBuilder();
+		cal.add(Calendar.DATE, -1);
+		ICommuneSuisse ancienneCommuneInvalidee = mutation.getCommunesOrigines().getFirst();
+		desactiverCommune(builder,cal.getTime(),ancienneCommuneInvalidee,mutation);
+		cal.setTime(mutation.getDateEffet());
+		ICommuneSuisse communeCree = mutation.getCommunesCibles().getFirst();
+		ecrireLieuFiscalCree(builder,communeCree,cal.getTime(),mutation.getDescription());
+		ecrireCommuneCree(builder,communeCree);
+		ecrireEvtCreationCommune(builder,cal.getTime());
+		return builder.toString();
+	}
+
 	private String ecrireFusion(IMutationCommune mutation) {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder builder = new StringBuilder();
@@ -135,7 +150,7 @@ class MutationCommuneRefonteSQLWriter implements MutationCommuneWriter {
 		}
 		// Commune née de la fusion
 		cal.setTime(mutation.getDateEffet());
-		ICommuneSuisse communeCree = mutation.getCommunesCibles().get(0);
+		ICommuneSuisse communeCree = mutation.getCommunesCibles().getFirst();
 		ecrireLieuFiscalCree(builder,communeCree,cal.getTime(),mutation.getDescription());
 		ecrireCommuneCree(builder,communeCree);
 		ecrireEvtCreationCommune(builder,cal.getTime());
@@ -184,7 +199,7 @@ class MutationCommuneRefonteSQLWriter implements MutationCommuneWriter {
 		builder.append("\n").append(demarque).append("\n\n");
 		return builder.toString();
 	}
-	
+
 	private String ecrireChgtNom(IMutationCommune mutation) {
 		Calendar cal = Calendar.getInstance();
 		StringBuilder builder = new StringBuilder();
@@ -199,12 +214,13 @@ class MutationCommuneRefonteSQLWriter implements MutationCommuneWriter {
 		builder.append("-- Conditions de validation : 1 ligne mise à jour\n\n");
 		return builder.toString();
 	}
-	
+
 	@Override
 	public String ecrireMutation(IMutationCommune mutation) {
 		if (TypeMutationCommune.FUSION.equals(mutation.getType())) return ecrireFusion(mutation);
 		if (TypeMutationCommune.INCLUSION.equals(mutation.getType())) return ecrireInclusion(mutation);
 		if (TypeMutationCommune.CHANGEMENT_NOM.equals(mutation.getType())) return ecrireChgtNom(mutation);
+		if (TypeMutationCommune.CHANGEMENT_CANTON.equals(mutation.getType())) return ecrireChangementCanton(mutation);
 		if (TypeMutationCommune.CHANGEMENT_DISTRICT.equals(mutation.getType())) return null;
 		throw new UnsupportedOperationException("Le type de mutation " + mutation.getType() + " n'est pas supporté !!");
 	}
