@@ -21,27 +21,28 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>${slf4j.version}</version>
-    </dependency>
-    <dependency>
+      <!-- Introduit la dépendance transitive avec SLF4J -->
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.20</version>
+      <version>${logback-classic.version}</version>
     </dependency>
     <dependency>
       <groupId>org.freemarker</groupId>
       <artifactId>freemarker</artifactId>
-      <version>2.3.34</version>
+      <version>${freemarker.version}</version>
       <scope>compile</scope>
     </dependency>
   </dependencies>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <junit.jupiter.version>6.0.0</junit.jupiter.version>
+    <junit.jupiter.version>6.0.2</junit.jupiter.version>
     <assertj.version>3.27.6</assertj.version>
-    <slf4j.version>2.0.17</slf4j.version>
+    <freemarker.version>2.3.34</freemarker.version>
+    <logback-classic.version>1.5.25</logback-classic.version>
+    <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <maven-surefire-report-plugin.version>3.5.4</maven-surefire-report-plugin.version>
+    <maven-pmd-plugin.version>3.28.0</maven-pmd-plugin.version>
   </properties>
 
 
@@ -51,7 +52,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.14.1</version>
+        <version>${maven-compiler-plugin.version}</version>
         <configuration>
           <release>25</release>
           <encoding>${project.build.sourceEncoding}</encoding>
@@ -64,7 +65,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.12.0</version>
+        <version>${maven-javadoc-plugin.version}</version>
         <configuration>
           <show>package</show>
           <charset>${project.build.sourceEncoding}</charset>
@@ -72,27 +73,22 @@
           <excludedocfilessubdir>CVS</excludedocfilessubdir>
           <links>
             <!-- JSE -->
-            <link>http://java.sun.com/javase/6/docs/api/</link>
+            <link>https://docs.oracle.com/en/java/javase/25/docs/api/</link>
             <!-- Libraries -->
-            <link>http://www.junit.org/junit/javadoc/</link>
-            <link>http://logging.apache.org/log4j/docs/api/</link>
+            <link>https://docs.junit.org/${junit.jupiter.version}/api/</link>
+            <link>https://www.slf4j.org/apidocs/</link>
           </links>
         </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-report-plugin</artifactId>
-        <version>3.5.4</version>
+        <version>${maven-surefire-report-plugin.version}</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
-        <version>3.28.0</version>
-        <configuration>
-          <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
-          <minimumTokens>100</minimumTokens>
-          <targetJdk>${compileSource}</targetJdk>
-        </configuration>
+        <version>${maven-pmd-plugin.version}</version>
       </plugin>
     </plugins>
   </reporting>

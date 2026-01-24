@@ -17,6 +17,7 @@
 package org.lieuofs.extraction.commune.mutation;
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -79,8 +80,10 @@ public class ExtracteurMutation {
 
 	private static void sortie(Calendar cal, MutationCommuneWriter redacteur, String nomFichierProduit) throws IOException {
 		ExtracteurMutation extracteur = new ExtracteurMutation(redacteur);
+		String codage = Arrays.stream(nomFichierProduit.split("\\.")).toList().getLast().equalsIgnoreCase("sql") ?
+				"Windows-1252" : "UTF-8";
 		try (OutputStream fluxSortantBinaire = new FileOutputStream(nomFichierProduit);
-			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,"UTF-8");
+			 Writer fluxSortantCaractere = new OutputStreamWriter(fluxSortantBinaire,codage);
 			 Writer fluxSortantCaractereAvecTampon = new BufferedWriter(fluxSortantCaractere);
 		) {
 			extracteur.extraireMutation(cal.getTime(), fluxSortantCaractereAvecTampon);
