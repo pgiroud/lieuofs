@@ -36,7 +36,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.jupiter.version>6.0.2</junit.jupiter.version>
-    <assertj.version>3.27.6</assertj.version>
+    <assertj.version>3.27.7</assertj.version>
     <freemarker.version>2.3.34</freemarker.version>
     <logback-classic.version>1.5.25</logback-classic.version>
     <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
